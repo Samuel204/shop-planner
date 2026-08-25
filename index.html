@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro Acquisti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F1EDE3;
+    --paper-2: #E8E2D2;
+    --ink: #1F2A24;
+    --ink-soft: #55605A;
+    --brass: #A9772F;
+    --brass-soft: #C79A52;
+    --ok: #5C7A6B;
+    --full: #9C4A2E;
+    --line: #D8D0BE;
+    --card: #FAF8F2;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{background:var(--brass-soft); color:var(--paper);}
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    padding:2.4rem clamp(1.2rem,4vw,3rem) 1.6rem;
+    border-bottom:1px solid var(--line);
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 0.5rem;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:clamp(1.8rem, 3.4vw, 2.6rem);
+    margin:0 0 0.4rem;
+    letter-spacing:-0.01em;
+  }
+
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:0.92rem;
+    max-width:46ch;
+    line-height:1.5;
+    margin:0 0 1.4rem;
+  }
+
+  .controls{
+    display:flex;
+    gap:1.6rem;
+    align-items:center;
+    flex-wrap:wrap;
+    font-size:0.85rem;
+  }
+
+  .controls label{
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    color:var(--ink-soft);
+  }
+
+  .controls input[type=number]{
+    width:3.2rem;
+    padding:0.3rem 0.4rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--card);
+    font-family:'JetBrains Mono', monospace;
+    color:var(--ink);
+    font-size:0.85rem;
+  }
+
+  .year-total{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--ink-soft);
+  }
+  .year-total b{ color:var(--ink); font-weight:600; }
+
+  .sync-toggle{
+    display:flex;
+    align-items:center;
+    gap:0.45rem;
+    background:none;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:0.35rem 0.8rem 0.35rem 0.6rem;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+  }
+  .sync-toggle:hover{ border-color:var(--brass-soft); color:var(--brass); }
+
+  .sync-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--ink-soft);
+    display:inline-block;
+    flex-shrink:0;
+  }
+  .sync-dot.synced{ background:var(--ok); }
+  .sync-dot.error{ background:var(--full); }
+  .sync-dot.syncing{ background:var(--brass); animation:pulse 1s infinite ease-in-out; }
+  @keyframes pulse{ 50%{ opacity:0.35; } }
+
+  .sync-panel{
+    max-width:520px;
+    margin-top:1.1rem;
+    padding:1rem 1.1rem;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+  }
+
+  .sync-help{
+    font-size:0.78rem;
+    line-height:1.5;
+    color:var(--ink-soft);
+    margin:0 0 0.9rem;
+  }
+  .sync-help a{ color:var(--brass); }
+
+  .sync-fields{
+    display:flex;
+    gap:0.8rem;
+    flex-wrap:wrap;
+    margin-bottom:0.8rem;
+  }
+  .sync-fields label{
+    display:flex;
+    flex-direction:column;
+    gap:0.3rem;
+    font-size:0.74rem;
+    color:var(--ink-soft);
+    flex:1;
+    min-width:180px;
+  }
+  .sync-fields input{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    padding:0.4rem 0.5rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+
+  .sync-actions{
+    display:flex;
+    gap:0.6rem;
+  }
+  .sync-actions button{
+    padding:0.45rem 0.8rem;
+    border-radius:5px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-family:'Inter', sans-serif;
+    font-size:0.78rem;
+    cursor:pointer;
+  }
+  #syncSaveBtn{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+
+  .sync-status-text{
+    font-size:0.74rem;
+    color:var(--ink-soft);
+    margin:0.7rem 0 0;
+    line-height:1.4;
+  }
+  .sync-status-text.err{ color:var(--full); }
+  .sync-status-text.ok{ color:var(--ok); }
+
+  main{
+    display:flex;
+    gap:0;
+    overflow-x:auto;
+    padding:0 clamp(1.2rem,4vw,3rem);
+    scrollbar-width:thin;
+  }
+
+  .col{
+    min-width:250px;
+    max-width:250px;
+    border-right:1px solid var(--line);
+    padding:1.2rem 1rem 2rem;
+    display:flex;
+    flex-direction:column;
+    min-height:70vh;
+  }
+
+  .col.backlog{
+    border-right:1px dashed var(--brass-soft);
+    background:repeating-linear-gradient(135deg, transparent, transparent 12px, rgba(169,119,47,0.035) 12px, rgba(169,119,47,0.035) 24px);
+  }
+
+  .col-head{
+    margin-bottom:1rem;
+  }
+
+  .col-index{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    color:var(--ink-soft);
+    letter-spacing:0.08em;
+  }
+
+  .col-title{
+    font-family:'Fraunces', serif;
+    font-size:1.15rem;
+    font-weight:500;
+    margin:0.15rem 0 0.5rem;
+    text-transform:capitalize;
+  }
+
+  .col.backlog .col-title{ font-style:italic; }
+
+  .dots{
+    display:flex;
+    align-items:center;
+    gap:0.3rem;
+    margin-bottom:0.3rem;
+  }
+
+  .dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    border:1px solid var(--ink-soft);
+    background:transparent;
+  }
+  .dot.filled{ background:var(--ok); border-color:var(--ok); }
+  .dots.full .dot.filled{ background:var(--full); border-color:var(--full); }
+
+  .month-total{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+  }
+
+  .items{
+    display:flex;
+    flex-direction:column;
+    gap:0.6rem;
+    flex:1;
+  }
+
+  .item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:0.65rem 0.7rem;
+    position:relative;
+  }
+
+  .item-title{
+    font-size:0.88rem;
+    font-weight:500;
+    margin:0 0 0.2rem;
+    line-height:1.3;
+    padding-right:1.2rem;
+  }
+
+  .item-price{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.76rem;
+    color:var(--brass);
+    margin-bottom:0.35rem;
+  }
+
+  .item-link{
+    display:inline-flex;
+    align-items:center;
+    gap:0.3rem;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    text-decoration:none;
+    border-bottom:1px solid var(--line);
+    margin-bottom:0.4rem;
+  }
+  .item-link:hover{ color:var(--brass); border-color:var(--brass-soft); }
+
+  .item-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:0.4rem;
+    margin-top:0.4rem;
+  }
+
+  .item select{
+    font-family:'Inter', sans-serif;
+    font-size:0.72rem;
+    padding:0.2rem 0.3rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink-soft);
+    max-width:118px;
+  }
+
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    cursor:pointer;
+    font-size:0.9rem;
+    line-height:1;
+    padding:0.2rem;
+    opacity:0.55;
+  }
+  .del-btn:hover{ opacity:1; color:var(--full); }
+
+  .item.purchased{
+    opacity:0.5;
+  }
+  .item.purchased .item-title{
+    text-decoration:line-through;
+    text-decoration-color:var(--ink-soft);
+  }
+
+  .returned-badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    color:var(--brass);
+    background:rgba(169,119,47,0.1);
+    display:inline-block;
+    padding:0.15rem 0.4rem;
+    border-radius:3px;
+    margin-bottom:0.4rem;
+  }
+
+  .buy-btn{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:4px;
+    width:1.6rem;
+    height:1.6rem;
+    font-size:0.75rem;
+    color:var(--ok);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .buy-btn:hover{ border-color:var(--ok); }
+
+  .add-btn{
+    margin-top:0.8rem;
+    background:none;
+    border:1px dashed var(--line);
+    border-radius:6px;
+    padding:0.55rem;
+    color:var(--ink-soft);
+    font-size:0.8rem;
+    font-family:'Inter', sans-serif;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  .add-btn:hover{ border-color:var(--brass-soft); color:var(--brass); }
+  .add-btn:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+
+  .full-note{
+    font-size:0.7rem;
+    color:var(--full);
+    margin-top:0.5rem;
+    line-height:1.4;
+  }
+
+  /* inline form */
+  .mini-form{
+    background:var(--card);
+    border:1px solid var(--brass-soft);
+    border-radius:6px;
+    padding:0.6rem;
+    margin-top:0.8rem;
+    display:flex;
+    flex-direction:column;
+    gap:0.4rem;
+  }
+  .mini-form input{
+    font-family:'Inter', sans-serif;
+    font-size:0.8rem;
+    padding:0.35rem 0.45rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .mini-form-row{ display:flex; gap:0.6rem; }
+  .mini-form-actions{ display:flex; gap:0.5rem; margin-top:0.2rem; }
+  .mini-form-actions button{
+    flex:1;
+    padding:0.4rem;
+    border-radius:4px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-size:0.75rem;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+  }
+  .mini-form-actions .save{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+
+  .empty-hint{
+    font-size:0.76rem;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:0.4rem 0;
+  }
+
+  @media (max-width: 640px){
+    .col{ min-width:78vw; max-width:78vw; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Registro · pianificazione acquisti</p>
+  <h1>Un oggetto per volta, un mese alla volta</h1>
+  <p class="subtitle">Le idee nascono libere in "In sospeso". Diventano un acquisto solo quando decidi consapevolmente in quale mese metterle — e ogni mese ha un tetto.</p>
+  <div class="controls">
+    <label>Limite per mese
+      <input type="number" id="capInput" min="1" max="12" value="3">
+    </label>
+    <span class="year-total">Totale pianificato: <b id="yearTotal">€0</b></span>
+    <button id="syncToggle" class="sync-toggle">
+      <span id="syncDot" class="sync-dot"></span>
+      <span id="syncLabel">Sincronizzazione</span>
+    </button>
+  </div>
+  <div id="syncPanel" class="sync-panel" hidden>
+    <p class="sync-help">Sincronizza tra dispositivi tramite <a href="https://jsonbin.io" target="_blank" rel="noopener">JSONBin.io</a> (gratuito). Crea un account, copia la tua <b>X-Master-Key</b> dalla dashboard e incollala qui. Al primo salvataggio verrà creato un "bin": copia l'ID mostrato e inseriscilo, insieme alla stessa chiave, sugli altri dispositivi.</p>
+    <div class="sync-fields">
+      <label>X-Master-Key
+        <input type="password" id="syncApiKey" placeholder="incolla la tua API key">
+      </label>
+      <label>Bin ID
+        <input type="text" id="syncBinId" placeholder="generato automaticamente al primo salvataggio">
+      </label>
+    </div>
+    <div class="sync-actions">
+      <button id="syncSaveBtn">Salva e sincronizza</button>
+      <button id="syncPullBtn">Sincronizza ora ↓</button>
+    </div>
+    <p id="syncStatusText" class="sync-status-text"></p>
+  </div>
+</header>
+
+<main id="board"></main>
+
+<script>
+const STORAGE_KEY = 'acquisti-planner-v1';
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { cap: 3, items: [] };
+}
+
+function saveState(pushCloud = true){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if(pushCloud) queueCloudPush();
+}
+
+const SYNC_KEY = 'acquisti-planner-sync-v1';
+
+function loadSyncConfig(){
+  try{
+    const raw = localStorage.getItem(SYNC_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { apiKey:'', binId:'' };
+}
+
+function saveSyncConfig(){
+  localStorage.setItem(SYNC_KEY, JSON.stringify(syncConfig));
+}
+
+let syncConfig = loadSyncConfig();
+let syncState = 'idle'; // idle | syncing | synced | error
+let syncTimer = null;
+let lastSyncError = '';
+
+function setSyncState(s){
+  syncState = s;
+  renderSyncStatus();
+  updateSyncStatusText();
+}
+
+function renderSyncStatus(){
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncLabel');
+  if(!dot || !label) return;
+  dot.className = 'sync-dot' + (syncState !== 'idle' ? ' ' + syncState : '');
+  const labels = {
+    idle: syncConfig.apiKey ? 'Configurato' : 'Sincronizzazione',
+    syncing: 'Sincronizzazione…',
+    synced: 'Sincronizzato',
+    error: 'Errore sync'
+  };
+  label.textContent = labels[syncState] || 'Sincronizzazione';
+}
+
+function updateSyncStatusText(customMsg){
+  const statusText = document.getElementById('syncStatusText');
+  if(!statusText) return;
+  if(customMsg){
+    statusText.textContent = customMsg;
+    statusText.className = 'sync-status-text';
+    return;
+  }
+  if(syncState === 'error'){
+    statusText.className = 'sync-status-text err';
+    statusText.textContent = 'Errore: ' + (lastSyncError || 'sincronizzazione non riuscita.');
+  } else if(syncState === 'synced'){
+    statusText.className = 'sync-status-text ok';
+    statusText.textContent = 'Sincronizzato correttamente.';
+  } else if(syncState === 'syncing'){
+    statusText.className = 'sync-status-text';
+    statusText.textContent = 'Sincronizzazione in corso…';
+  }
+}
+
+async function describeFailedResponse(res){
+  let body = '';
+  try{ body = await res.text(); }catch(e){}
+  try{ body = JSON.parse(body).message || body; }catch(e){}
+  return `HTTP ${res.status} — ${body ? body.slice(0,160) : res.statusText}`;
+}
+
+async function pullFromCloud(){
+  if(!syncConfig.apiKey || !syncConfig.binId) return false;
+  setSyncState('syncing');
+  lastSyncError = '';
+  try{
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${syncConfig.binId}/latest`, {
+      headers: { 'X-Master-Key': syncConfig.apiKey }
+    });
+    if(!res.ok){ lastSyncError = await describeFailedResponse(res); throw new Error(lastSyncError); }
+    const json = await res.json();
+    if(json.record && Array.isArray(json.record.items)){
+      state = { cap: json.record.cap || 3, items: json.record.items };
+      saveState(false);
+    }
+    setSyncState('synced');
+    return true;
+  }catch(e){
+    if(!lastSyncError) lastSyncError = (e.message === 'Failed to fetch')
+      ? 'richiesta di rete bloccata (probabile restrizione dell\'iframe di Notion, prova ad aprire il file HTML direttamente nel browser).'
+      : e.message;
+    setSyncState('error');
+    return false;
+  }
+}
+
+async function pushToCloud(){
+  if(!syncConfig.apiKey) { setSyncState('idle'); return; }
+  setSyncState('syncing');
+  lastSyncError = '';
+  try{
+    if(!syncConfig.binId){
+      const res = await fetch('https://api.jsonbin.io/v3/b', {
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'X-Master-Key': syncConfig.apiKey,
+          'X-Bin-Private':'true',
+          'X-Bin-Name':'acquisti-planner'
+        },
+        body: JSON.stringify(state)
+      });
+      if(!res.ok){ lastSyncError = await describeFailedResponse(res); throw new Error(lastSyncError); }
+      const json = await res.json();
+      syncConfig.binId = json.metadata.id;
+      saveSyncConfig();
+      const binField = document.getElementById('syncBinId');
+      if(binField) binField.value = syncConfig.binId;
+      setSyncState('synced');
+      updateSyncStatusText(`Bin creato. Copia questo ID (${syncConfig.binId}) insieme alla tua chiave sugli altri dispositivi.`);
+      return;
+    } else {
+      const res = await fetch(`https://api.jsonbin.io/v3/b/${syncConfig.binId}`, {
+        method:'PUT',
+        headers:{
+          'Content-Type':'application/json',
+          'X-Master-Key': syncConfig.apiKey
+        },
+        body: JSON.stringify(state)
+      });
+      if(!res.ok){ lastSyncError = await describeFailedResponse(res); throw new Error(lastSyncError); }
+    }
+    setSyncState('synced');
+  }catch(e){
+    if(!lastSyncError) lastSyncError = (e.message === 'Failed to fetch')
+      ? 'richiesta di rete bloccata (probabile restrizione dell\'iframe di Notion, prova ad aprire il file HTML direttamente nel browser).'
+      : e.message;
+    setSyncState('error');
+  }
+}
+
+function queueCloudPush(){
+  if(!syncConfig.apiKey) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushToCloud, 900);
+}
+
+let state = loadState();
+let openForm = null; // key of column with an open add-form
+
+function monthKeys(n){
+  const now = new Date();
+  const keys = [];
+  for(let i=0;i<n;i++){
+    const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+    keys.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
+  }
+  return keys;
+}
+
+function monthLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  const d = new Date(y, m-1, 1);
+  return d.toLocaleDateString('it-IT', {month:'long', year:'numeric'});
+}
+
+function itemsFor(key){
+  return state.items.filter(it => it.month === key);
+}
+
+function activeItemsFor(key){
+  return itemsFor(key).filter(it => !it.purchased);
+}
+
+function monthTotal(key){
+  // only what's still to be bought, not what's already purchased
+  return activeItemsFor(key).reduce((s,it)=> s + (Number(it.price)||0), 0);
+}
+
+function fmtEuro(n){
+  return '€' + n.toLocaleString('it-IT', {maximumFractionDigits:0});
+}
+
+function isFull(key){
+  return activeItemsFor(key).length >= state.cap;
+}
+
+// Any non-purchased item whose month has already passed silently rejoins
+// "In sospeso" instead of disappearing from view. Runs before every render.
+function sweepExpiredMonths(){
+  const currentKeys = monthKeys(12);
+  const firstKey = currentKeys[0];
+  let changed = false;
+  state.items.forEach(it => {
+    if(it.month !== 'backlog' && !it.purchased && it.month < firstKey){
+      it.returnedFrom = it.month;
+      it.month = 'backlog';
+      changed = true;
+    }
+  });
+  if(changed) saveState();
+}
+
+function render(){
+  sweepExpiredMonths();
+  renderSyncStatus();
+  const cap = state.cap;
+  document.getElementById('capInput').value = cap;
+
+  const keys = monthKeys(12);
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // Year total across scheduled months
+  const yearSum = keys.reduce((s,k)=> s + monthTotal(k), 0);
+  document.getElementById('yearTotal').textContent = fmtEuro(yearSum);
+
+  // Backlog column
+  board.appendChild(buildColumn({
+    key:'backlog',
+    isBacklog:true,
+    title:'In sospeso',
+    indexLabel:'IDEE'
+  }));
+
+  // Month columns
+  keys.forEach((key, i) => {
+    board.appendChild(buildColumn({
+      key,
+      isBacklog:false,
+      title: monthLabel(key),
+      indexLabel: 'PAG. ' + String(i+1).padStart(2,'0')
+    }));
+  });
+}
+
+function buildColumn({key, isBacklog, title, indexLabel}){
+  const col = document.createElement('div');
+  col.className = 'col' + (isBacklog ? ' backlog' : '');
+
+  const head = document.createElement('div');
+  head.className = 'col-head';
+
+  const idx = document.createElement('div');
+  idx.className = 'col-index';
+  idx.textContent = indexLabel;
+  head.appendChild(idx);
+
+  const h = document.createElement('div');
+  h.className = 'col-title';
+  h.textContent = title;
+  head.appendChild(h);
+
+  if(!isBacklog){
+    const count = activeItemsFor(key).length;
+    const dots = document.createElement('div');
+    dots.className = 'dots' + (count >= state.cap ? ' full' : '');
+    for(let i=0;i<state.cap;i++){
+      const d = document.createElement('span');
+      d.className = 'dot' + (i < count ? ' filled' : '');
+      dots.appendChild(d);
+    }
+    head.appendChild(dots);
+
+    const total = monthTotal(key);
+    if(total > 0){
+      const tot = document.createElement('div');
+      tot.className = 'month-total';
+      tot.textContent = fmtEuro(total) + ' previsti';
+      head.appendChild(tot);
+    }
+  }
+
+  col.appendChild(head);
+
+  const itemsWrap = document.createElement('div');
+  itemsWrap.className = 'items';
+
+  const list = itemsFor(key).slice().sort((a,b) => (a.purchased===b.purchased) ? 0 : (a.purchased ? 1 : -1));
+  if(list.length === 0){
+    const hint = document.createElement('div');
+    hint.className = 'empty-hint';
+    hint.textContent = isBacklog ? 'Nessuna idea in attesa.' : 'Vuoto.';
+    itemsWrap.appendChild(hint);
+  }
+
+  list.forEach(it => itemsWrap.appendChild(buildItemCard(it, key)));
+  col.appendChild(itemsWrap);
+
+  // Add control
+  const full = !isBacklog && isFull(key);
+
+  if(openForm === key){
+    col.appendChild(buildMiniForm(key));
+  } else {
+    const btn = document.createElement('button');
+    btn.className = 'add-btn';
+    btn.textContent = full ? 'Mese pieno' : '+ Aggiungi';
+    btn.disabled = full;
+    btn.onclick = () => { openForm = key; render(); };
+    col.appendChild(btn);
+
+    if(full){
+      const note = document.createElement('div');
+      note.className = 'full-note';
+      note.textContent = `Hai già ${state.cap} elementi qui. Sposta qualcosa fuori, scegli un altro mese, o mettilo in "In sospeso".`;
+      col.appendChild(note);
+    }
+  }
+
+  return col;
+}
+
+function buildItemCard(it, currentKey){
+  const card = document.createElement('div');
+  card.className = 'item' + (it.purchased ? ' purchased' : '');
+
+  const del = document.createElement('button');
+  del.className = 'del-btn';
+  del.style.position = 'absolute';
+  del.style.top = '0.5rem';
+  del.style.right = '0.4rem';
+  del.textContent = '×';
+  del.onclick = () => {
+    state.items = state.items.filter(x => x.id !== it.id);
+    saveState(); render();
+  };
+  card.appendChild(del);
+
+  if(it.returnedFrom && it.month === 'backlog'){
+    const badge = document.createElement('div');
+    badge.className = 'returned-badge';
+    badge.textContent = '↺ rientrato da ' + monthLabel(it.returnedFrom);
+    card.appendChild(badge);
+  }
+
+  const title = document.createElement('p');
+  title.className = 'item-title';
+  title.textContent = it.title;
+  card.appendChild(title);
+
+  if(it.price){
+    const price = document.createElement('div');
+    price.className = 'item-price';
+    price.textContent = fmtEuro(Number(it.price));
+    card.appendChild(price);
+  }
+
+  if(it.url){
+    const link = document.createElement('a');
+    link.className = 'item-link';
+    link.href = it.url;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = '↗ apri sito';
+    card.appendChild(link);
+  }
+
+  const row = document.createElement('div');
+  row.className = 'item-row';
+
+  const select = document.createElement('select');
+  const backlogOpt = document.createElement('option');
+  backlogOpt.value = 'backlog';
+  backlogOpt.textContent = 'In sospeso';
+  select.appendChild(backlogOpt);
+
+  monthKeys(12).forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = monthLabel(k);
+    select.appendChild(opt);
+  });
+  select.value = it.month;
+
+  select.onchange = (e) => {
+    const dest = e.target.value;
+    if(dest !== 'backlog' && activeItemsFor(dest).length >= state.cap && dest !== it.month){
+      alert(`"${monthLabel(dest)}" è già pieno (${state.cap}/${state.cap}). Sposta prima qualcos'altro.`);
+      select.value = it.month;
+      return;
+    }
+    it.month = dest;
+    delete it.returnedFrom;
+    saveState(); render();
+  };
+
+  row.appendChild(select);
+
+  if(currentKey !== 'backlog'){
+    const buyBtn = document.createElement('button');
+    buyBtn.className = 'buy-btn';
+    buyBtn.textContent = it.purchased ? '↺' : '✓';
+    buyBtn.title = it.purchased ? 'Segna come non comprato' : 'Segna come comprato';
+    buyBtn.onclick = () => {
+      it.purchased = !it.purchased;
+      saveState(); render();
+    };
+    row.appendChild(buyBtn);
+  }
+
+  card.appendChild(row);
+
+  return card;
+}
+
+function buildMiniForm(key){
+  const wrap = document.createElement('div');
+  wrap.className = 'mini-form';
+
+  const titleInput = document.createElement('input');
+  titleInput.placeholder = 'Cosa vuoi comprare';
+  titleInput.autofocus = true;
+
+  const row = document.createElement('div');
+  row.className = 'mini-form-row';
+
+  const priceInput = document.createElement('input');
+  priceInput.placeholder = 'Prezzo (€, opz.)';
+  priceInput.type = 'number';
+  priceInput.min = '0';
+
+  const urlInput = document.createElement('input');
+  urlInput.placeholder = 'URL (opz.)';
+  urlInput.type = 'url';
+
+  row.appendChild(priceInput);
+  row.appendChild(urlInput);
+
+  wrap.appendChild(titleInput);
+  wrap.appendChild(row);
+
+  const actions = document.createElement('div');
+  actions.className = 'mini-form-actions';
+
+  const cancel = document.createElement('button');
+  cancel.textContent = 'Annulla';
+  cancel.onclick = () => { openForm = null; render(); };
+
+  const save = document.createElement('button');
+  save.className = 'save';
+  save.textContent = 'Salva';
+  save.onclick = () => {
+    const title = titleInput.value.trim();
+    if(!title) return;
+    if(key !== 'backlog' && activeItemsFor(key).length >= state.cap){
+      alert('Questo mese si è riempito nel frattempo.');
+      openForm = null; render(); return;
+    }
+    state.items.push({
+      id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      title,
+      price: priceInput.value ? Number(priceInput.value) : null,
+      url: urlInput.value.trim() || null,
+      month: key,
+      purchased: false,
+      createdAt: Date.now()
+    });
+    saveState();
+    openForm = null;
+    render();
+  };
+
+  actions.appendChild(cancel);
+  actions.appendChild(save);
+  wrap.appendChild(actions);
+
+  titleInput.addEventListener('keydown', e => { if(e.key === 'Enter') save.onclick(); });
+
+  setTimeout(()=> titleInput.focus(), 0);
+
+  return wrap;
+}
+
+document.getElementById('capInput').addEventListener('change', (e) => {
+  let v = parseInt(e.target.value, 10);
+  if(isNaN(v) || v < 1) v = 1;
+  if(v > 12) v = 12;
+  state.cap = v;
+  saveState();
+  render();
+});
+
+document.getElementById('syncToggle').addEventListener('click', () => {
+  const panel = document.getElementById('syncPanel');
+  panel.hidden = !panel.hidden;
+  if(!panel.hidden){
+    document.getElementById('syncApiKey').value = syncConfig.apiKey;
+    document.getElementById('syncBinId').value = syncConfig.binId;
+  }
+});
+
+document.getElementById('syncSaveBtn').addEventListener('click', async () => {
+  syncConfig.apiKey = document.getElementById('syncApiKey').value.trim();
+  syncConfig.binId = document.getElementById('syncBinId').value.trim();
+  saveSyncConfig();
+  lastSyncError = '';
+  if(!syncConfig.apiKey){
+    setSyncState('idle');
+    updateSyncStatusText('Nessuna chiave inserita: i dati restano solo su questo dispositivo.');
+    return;
+  }
+  if(syncConfig.binId){
+    const ok = await pullFromCloud();
+    if(ok) render();
+  } else {
+    await pushToCloud();
+  }
+});
+
+document.getElementById('syncPullBtn').addEventListener('click', async () => {
+  lastSyncError = '';
+  const ok = await pullFromCloud();
+  if(ok) render();
+});
+
+(async function init(){
+  if(syncConfig.apiKey && syncConfig.binId){
+    await pullFromCloud();
+  }
+  render();
+})();
+</script>
+
+</body>
+</html>
