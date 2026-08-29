@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro Acquisti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F1EDE3;
+    --paper-2: #E8E2D2;
+    --ink: #1F2A24;
+    --ink-soft: #55605A;
+    --brass: #A9772F;
+    --brass-soft: #C79A52;
+    --ok: #5C7A6B;
+    --full: #9C4A2E;
+    --line: #D8D0BE;
+    --card: #FAF8F2;
+  }
+
+  *{box-sizing:border-box;}
+  ::selection{background:var(--brass-soft); color:var(--paper);}
+
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  header{
+    padding:2.4rem clamp(1.2rem,4vw,3rem) 1.6rem;
+    border-bottom:1px solid var(--line);
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin:0 0 0.5rem;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:clamp(1.8rem, 3.4vw, 2.6rem);
+    margin:0 0 0.4rem;
+    letter-spacing:-0.01em;
+  }
+
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:0.92rem;
+    max-width:46ch;
+    line-height:1.5;
+    margin:0 0 1.4rem;
+  }
+
+  .controls{
+    display:flex;
+    gap:1.6rem;
+    align-items:center;
+    flex-wrap:wrap;
+    font-size:0.85rem;
+  }
+
+  .controls label{
+    display:flex;
+    align-items:center;
+    gap:0.5rem;
+    color:var(--ink-soft);
+  }
+
+  .controls input[type=number]{
+    width:3.2rem;
+    padding:0.3rem 0.4rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--card);
+    font-family:'JetBrains Mono', monospace;
+    color:var(--ink);
+    font-size:0.85rem;
+  }
+
+  .year-total{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--ink-soft);
+  }
+  .year-total b{ color:var(--ink); font-weight:600; }
+
+  .sync-toggle{
+    display:flex;
+    align-items:center;
+    gap:0.45rem;
+    background:none;
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:0.35rem 0.8rem 0.35rem 0.6rem;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+  }
+  .sync-toggle:hover{ border-color:var(--brass-soft); color:var(--brass); }
+
+  .sync-dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--ink-soft);
+    display:inline-block;
+    flex-shrink:0;
+  }
+  .sync-dot.synced{ background:var(--ok); }
+  .sync-dot.error{ background:var(--full); }
+  .sync-dot.syncing{ background:var(--brass); animation:pulse 1s infinite ease-in-out; }
+  @keyframes pulse{ 50%{ opacity:0.35; } }
+
+  .sync-panel{
+    max-width:520px;
+    margin-top:1.1rem;
+    padding:1rem 1.1rem;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+  }
+
+  .sync-help{
+    font-size:0.78rem;
+    line-height:1.5;
+    color:var(--ink-soft);
+    margin:0 0 0.9rem;
+  }
+  .sync-help a{ color:var(--brass); }
+
+  .sync-fields{
+    display:flex;
+    gap:0.8rem;
+    flex-wrap:wrap;
+    margin-bottom:0.8rem;
+  }
+  .sync-fields label{
+    display:flex;
+    flex-direction:column;
+    gap:0.3rem;
+    font-size:0.74rem;
+    color:var(--ink-soft);
+    flex:1;
+    min-width:180px;
+  }
+  .sync-fields input{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    padding:0.4rem 0.5rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+
+  .sync-actions{
+    display:flex;
+    gap:0.6rem;
+  }
+  .sync-actions button{
+    padding:0.45rem 0.8rem;
+    border-radius:5px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-family:'Inter', sans-serif;
+    font-size:0.78rem;
+    cursor:pointer;
+  }
+  #syncSaveBtn{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+
+  .sync-status-text{
+    font-size:0.74rem;
+    color:var(--ink-soft);
+    margin:0.7rem 0 0;
+    line-height:1.4;
+  }
+  .sync-status-text.err{ color:var(--full); }
+  .sync-status-text.ok{ color:var(--ok); }
+
+  main{
+    display:flex;
+    gap:0;
+    overflow-x:auto;
+    padding:0 clamp(1.2rem,4vw,3rem);
+    scrollbar-width:thin;
+  }
+
+  .col{
+    min-width:250px;
+    max-width:250px;
+    border-right:1px solid var(--line);
+    padding:1.2rem 1rem 2rem;
+    display:flex;
+    flex-direction:column;
+    min-height:70vh;
+  }
+
+  .col.backlog{
+    border-right:1px dashed var(--brass-soft);
+    background:repeating-linear-gradient(135deg, transparent, transparent 12px, rgba(169,119,47,0.035) 12px, rgba(169,119,47,0.035) 24px);
+  }
+
+  .col-head{
+    margin-bottom:1rem;
+  }
+
+  .col-index{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    color:var(--ink-soft);
+    letter-spacing:0.08em;
+  }
+
+  .col-title{
+    font-family:'Fraunces', serif;
+    font-size:1.15rem;
+    font-weight:500;
+    margin:0.15rem 0 0.5rem;
+    text-transform:capitalize;
+  }
+
+  .col.backlog .col-title{ font-style:italic; }
+
+  .dots{
+    display:flex;
+    align-items:center;
+    gap:0.3rem;
+    margin-bottom:0.3rem;
+  }
+
+  .dot{
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    border:1px solid var(--ink-soft);
+    background:transparent;
+  }
+  .dot.filled{ background:var(--ok); border-color:var(--ok); }
+  .dots.full .dot.filled{ background:var(--full); border-color:var(--full); }
+
+  .month-total{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+  }
+
+  .items{
+    display:flex;
+    flex-direction:column;
+    gap:0.6rem;
+    flex:1;
+  }
+
+  .item{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:0.65rem 0.7rem;
+    position:relative;
+  }
+
+  .item-title{
+    font-size:0.88rem;
+    font-weight:500;
+    margin:0 0 0.2rem;
+    line-height:1.3;
+    padding-right:1.2rem;
+  }
+
+  .item-price-row{
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    flex-wrap:wrap;
+    margin-bottom:0.35rem;
+  }
+
+  .item-price{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.76rem;
+    color:var(--brass);
+  }
+
+  .item-service{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    background:var(--paper-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:0.1rem 0.35rem;
+  }
+  .item-service[data-service="Klarna"]{ background:#F6D9E2; color:#8A2F49; border-color:#E3A9BC; }
+  .item-service[data-service="Paypal"]{ background:#D6E4F7; color:#1B4D8C; border-color:#A9C6EA; }
+  .item-service[data-service="Scalapay"]{ background:#E3D6F7; color:#5B2D8C; border-color:#C6A9EA; }
+  .item-service[data-service="Altro"]{ background:#E6E0CC; color:#6B5A2E; border-color:#D2C79E; }
+
+  .item-link{
+    display:inline-flex;
+    align-items:center;
+    gap:0.3rem;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    text-decoration:none;
+    border-bottom:1px solid var(--line);
+    margin-bottom:0.4rem;
+  }
+  .item-link:hover{ color:var(--brass); border-color:var(--brass-soft); }
+
+  .item-row{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:center;
+    gap:0.4rem;
+    margin-top:0.4rem;
+  }
+
+  .date-group{
+    display:flex;
+    align-items:center;
+    gap:0.25rem;
+  }
+
+  .item .day-select{
+    width:3.4rem;
+    flex-shrink:0;
+  }
+
+  .item select{
+    font-family:'Inter', sans-serif;
+    font-size:0.72rem;
+    padding:0.2rem 0.3rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink-soft);
+    max-width:118px;
+  }
+
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    cursor:pointer;
+    font-size:0.9rem;
+    line-height:1;
+    padding:0.2rem;
+    opacity:0.55;
+  }
+  .del-btn:hover{ opacity:1; color:var(--full); }
+
+  .item.purchased{
+    opacity:0.5;
+  }
+  .item.purchased .item-title{
+    text-decoration:line-through;
+    text-decoration-color:var(--ink-soft);
+  }
+
+  .returned-badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    color:var(--brass);
+    background:rgba(169,119,47,0.1);
+    display:inline-block;
+    padding:0.15rem 0.4rem;
+    border-radius:3px;
+    margin-bottom:0.4rem;
+  }
+
+  .buy-btn{
+    background:none;
+    border:1px solid var(--line);
+    border-radius:4px;
+    width:1.6rem;
+    height:1.6rem;
+    font-size:0.75rem;
+    color:var(--ok);
+    cursor:pointer;
+    flex-shrink:0;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .buy-btn:hover{ border-color:var(--ok); }
+  .buy-btn.armed{
+    background:var(--full);
+    border-color:var(--full);
+    color:#fff;
+    font-size:0.85rem;
+  }
+
+  .add-btn{
+    margin-top:0.8rem;
+    background:none;
+    border:1px dashed var(--line);
+    border-radius:6px;
+    padding:0.55rem;
+    color:var(--ink-soft);
+    font-size:0.8rem;
+    font-family:'Inter', sans-serif;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  .add-btn:hover{ border-color:var(--brass-soft); color:var(--brass); }
+  .add-btn:disabled{
+    opacity:0.4;
+    cursor:not-allowed;
+  }
+
+  .full-note{
+    font-size:0.7rem;
+    color:var(--full);
+    margin-top:0.5rem;
+    line-height:1.4;
+  }
+
+  /* inline form */
+  .mini-form{
+    background:var(--card);
+    border:1px solid var(--brass-soft);
+    border-radius:6px;
+    padding:0.6rem;
+    margin-top:0.8rem;
+    display:flex;
+    flex-direction:column;
+    gap:0.4rem;
+  }
+  .mini-form input{
+    font-family:'Inter', sans-serif;
+    font-size:0.8rem;
+    padding:0.35rem 0.45rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+  .mini-form-row{ display:flex; gap:0.6rem; }
+
+  .mini-form-field{
+    display:flex;
+    flex-direction:column;
+    gap:0.25rem;
+  }
+  .mini-form-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.65rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .mini-form-select{
+    font-family:'Inter', sans-serif;
+    font-size:0.8rem;
+    padding:0.35rem 0.45rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink);
+  }
+
+  .mini-form-actions{ display:flex; gap:0.5rem; margin-top:0.2rem; }
+  .mini-form-actions button{
+    flex:1;
+    padding:0.4rem;
+    border-radius:4px;
+    border:1px solid var(--line);
+    background:var(--paper);
+    font-size:0.75rem;
+    cursor:pointer;
+    font-family:'Inter', sans-serif;
+  }
+  .mini-form-actions .save{
+    background:var(--ink);
+    color:var(--paper);
+    border-color:var(--ink);
+  }
+
+  .empty-hint{
+    font-size:0.76rem;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:0.4rem 0;
+  }
+
+  /* ============ MOBILE ONLY (desktop layout above is untouched) ============ */
+  @media (max-width: 640px){
+
+    #board{
+      overflow-x:hidden;
+      padding-bottom:6rem; /* room for the floating navbar */
+    }
+
+    #board .col{
+      display:none;
+      min-width:100%;
+      max-width:100%;
+      border-right:none;
+    }
+    #board .col.mobile-active{
+      display:flex;
+    }
+
+    .mobile-page-nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:0.6rem;
+      position:sticky;
+      top:0;
+      z-index:5;
+      background:var(--paper);
+      border-bottom:1px solid var(--line);
+      padding:0.7rem clamp(1.2rem,4vw,3rem);
+    }
+
+    .mp-arrow{
+      background:none;
+      border:1px solid var(--line);
+      border-radius:50%;
+      width:2.1rem;
+      height:2.1rem;
+      font-size:1.1rem;
+      line-height:1;
+      color:var(--ink);
+      cursor:pointer;
+      flex-shrink:0;
+    }
+    .mp-arrow:active{ background:var(--paper-2); }
+
+    .mp-label{
+      text-align:center;
+      flex:1;
+      min-width:0;
+    }
+    .mp-index{
+      display:block;
+      font-family:'JetBrains Mono', monospace;
+      font-size:0.65rem;
+      letter-spacing:0.1em;
+      color:var(--brass);
+    }
+    .mp-title{
+      display:block;
+      font-family:'Fraunces', serif;
+      font-size:1.05rem;
+      font-weight:500;
+      text-transform:capitalize;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .mobile-navbar{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:0.5rem;
+      position:fixed;
+      left:50%;
+      bottom:1.1rem;
+      transform:translateX(-50%);
+      background:var(--ink);
+      border-radius:999px;
+      padding:0.5rem 0.6rem;
+      box-shadow:0 8px 24px rgba(31,42,36,0.28);
+      z-index:10;
+    }
+
+    .nav-btn{
+      background:none;
+      border:none;
+      color:var(--paper);
+      font-family:'Inter', sans-serif;
+      font-size:0.72rem;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:0.15rem;
+      padding:0.3rem 0.9rem;
+      cursor:pointer;
+      opacity:0.75;
+    }
+    .nav-btn:active{ opacity:1; }
+    .nav-btn .nav-dot{
+      width:5px; height:5px; border-radius:50%;
+      background:var(--brass-soft);
+    }
+
+    .nav-fab{
+      background:var(--brass);
+      color:var(--paper);
+      border:none;
+      border-radius:50%;
+      width:3rem;
+      height:3rem;
+      font-family:'Fraunces', serif;
+      font-size:1.5rem;
+      line-height:1;
+      cursor:pointer;
+      flex-shrink:0;
+      margin:0 0.15rem;
+    }
+    .nav-fab:active{ background:var(--brass-soft); }
+  }
+
+  @media (min-width: 641px){
+    .mobile-page-nav, .mobile-navbar{ display:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Registro · pianificazione acquisti</p>
+  <h1>Un oggetto per volta, un mese alla volta</h1>
+  <p class="subtitle">Le idee nascono libere in "In sospeso". Diventano un acquisto solo quando decidi consapevolmente in quale mese metterle — e ogni mese ha un tetto.</p>
+  <div class="controls">
+    <label>Limite per mese
+      <input type="number" id="capInput" min="1" max="12" value="3">
+    </label>
+    <span class="year-total">Totale pianificato: <b id="yearTotal">€0</b></span>
+    <button id="syncToggle" class="sync-toggle">
+      <span id="syncDot" class="sync-dot"></span>
+      <span id="syncLabel">Sincronizzazione</span>
+    </button>
+  </div>
+  <div id="syncPanel" class="sync-panel" hidden>
+    <p class="sync-help">Sincronizza tra dispositivi tramite <a href="https://jsonstorage.net" target="_blank" rel="noopener">JsonStorage.net</a>. Crea un Item dal tuo pannello (tipo "Content", contenuto iniziale <code>{}</code>), attiva "Public Access" se vuoi leggere senza chiave, poi incolla qui sotto l'URL "Get JSON" dell'item e la tua API Key (serve solo per salvare).</p>
+    <div class="sync-fields">
+      <label>URL Item (Get JSON)
+        <input type="text" id="syncItemUrl" placeholder="https://api.jsonstorage.net/v1/json/.../...">
+      </label>
+      <label>API Key
+        <input type="password" id="syncApiKey" placeholder="incolla la tua API key">
+      </label>
+    </div>
+    <div class="sync-actions">
+      <button id="syncSaveBtn">Salva e sincronizza</button>
+      <button id="syncPullBtn">Sincronizza ora ↓</button>
+    </div>
+    <p id="syncStatusText" class="sync-status-text"></p>
+  </div>
+</header>
+
+<div id="mobilePageNav" class="mobile-page-nav">
+  <button id="mpPrev" class="mp-arrow" aria-label="Pagina precedente">‹</button>
+  <div class="mp-label">
+    <span id="mpIndex" class="mp-index"></span>
+    <span id="mpTitle" class="mp-title"></span>
+  </div>
+  <button id="mpNext" class="mp-arrow" aria-label="Pagina successiva">›</button>
+</div>
+
+<main id="board"></main>
+
+<nav id="mobileNavbar" class="mobile-navbar">
+  <button id="navIdee" class="nav-btn">
+    <span class="nav-dot"></span>
+    <span>Idee</span>
+  </button>
+  <button id="navAdd" class="nav-fab" aria-label="Aggiungi">+</button>
+  <button id="navOggi" class="nav-btn">
+    <span class="nav-dot"></span>
+    <span>Oggi</span>
+  </button>
+</nav>
+
+<script>
+const STORAGE_KEY = 'acquisti-planner-v1';
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { cap: 3, items: [] };
+}
+
+function saveState(pushCloud = true){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if(pushCloud) queueCloudPush();
+}
+
+const SYNC_KEY = 'acquisti-planner-sync-v1';
+
+function loadSyncConfig(){
+  try{
+    const raw = localStorage.getItem(SYNC_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { apiKey:'', itemUrl:'' };
+}
+
+function saveSyncConfig(){
+  localStorage.setItem(SYNC_KEY, JSON.stringify(syncConfig));
+}
+
+let syncConfig = loadSyncConfig();
+let syncState = 'idle'; // idle | syncing | synced | error
+let syncTimer = null;
+let lastSyncError = '';
+
+function setSyncState(s){
+  syncState = s;
+  renderSyncStatus();
+  updateSyncStatusText();
+}
+
+function renderSyncStatus(){
+  const dot = document.getElementById('syncDot');
+  const label = document.getElementById('syncLabel');
+  if(!dot || !label) return;
+  dot.className = 'sync-dot' + (syncState !== 'idle' ? ' ' + syncState : '');
+  const labels = {
+    idle: syncConfig.apiKey ? 'Configurato' : 'Sincronizzazione',
+    syncing: 'Sincronizzazione…',
+    synced: 'Sincronizzato',
+    error: 'Errore sync'
+  };
+  label.textContent = labels[syncState] || 'Sincronizzazione';
+}
+
+function updateSyncStatusText(customMsg){
+  const statusText = document.getElementById('syncStatusText');
+  if(!statusText) return;
+  if(customMsg){
+    statusText.textContent = customMsg;
+    statusText.className = 'sync-status-text';
+    return;
+  }
+  if(syncState === 'error'){
+    statusText.className = 'sync-status-text err';
+    statusText.textContent = 'Errore: ' + (lastSyncError || 'sincronizzazione non riuscita.');
+  } else if(syncState === 'synced'){
+    statusText.className = 'sync-status-text ok';
+    statusText.textContent = 'Sincronizzato correttamente.';
+  } else if(syncState === 'syncing'){
+    statusText.className = 'sync-status-text';
+    statusText.textContent = 'Sincronizzazione in corso…';
+  }
+}
+
+async function describeFailedResponse(res){
+  let body = '';
+  try{ body = await res.text(); }catch(e){}
+  try{ body = JSON.parse(body).message || body; }catch(e){}
+  return `HTTP ${res.status} — ${body ? body.slice(0,160) : res.statusText}`;
+}
+
+async function pullFromCloud(){
+  if(!syncConfig.itemUrl) return false;
+  setSyncState('syncing');
+  lastSyncError = '';
+  try{
+    const res = await fetch(syncConfig.itemUrl);
+    if(!res.ok){ lastSyncError = await describeFailedResponse(res); throw new Error(lastSyncError); }
+    const json = await res.json();
+    if(json && Array.isArray(json.items)){
+      state = { cap: json.cap || 3, items: json.items };
+      saveState(false);
+    }
+    setSyncState('synced');
+    return true;
+  }catch(e){
+    if(!lastSyncError) lastSyncError = (e.message === 'Failed to fetch')
+      ? 'richiesta di rete bloccata (probabile restrizione dell\'iframe di Notion, prova ad aprire il file HTML direttamente nel browser).'
+      : e.message;
+    setSyncState('error');
+    return false;
+  }
+}
+
+async function pushToCloud(){
+  if(!syncConfig.apiKey || !syncConfig.itemUrl){ setSyncState('idle'); return; }
+  setSyncState('syncing');
+  lastSyncError = '';
+  try{
+    const sep = syncConfig.itemUrl.includes('?') ? '&' : '?';
+    const putUrl = `${syncConfig.itemUrl}${sep}apiKey=${encodeURIComponent(syncConfig.apiKey)}`;
+    const res = await fetch(putUrl, {
+      method:'PUT',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(state)
+    });
+    if(!res.ok){ lastSyncError = await describeFailedResponse(res); throw new Error(lastSyncError); }
+    setSyncState('synced');
+  }catch(e){
+    if(!lastSyncError) lastSyncError = (e.message === 'Failed to fetch')
+      ? 'richiesta di rete bloccata (probabile restrizione dell\'iframe di Notion, prova ad aprire il file HTML direttamente nel browser).'
+      : e.message;
+    setSyncState('error');
+  }
+}
+
+function queueCloudPush(){
+  if(!syncConfig.apiKey || !syncConfig.itemUrl) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(pushToCloud, 900);
+}
+
+let state = loadState();
+let openForm = null; // key of column with an open add-form
+let armedDelete = new Set(); // ids of items waiting for a second confirming click
+
+function monthKeys(n){
+  const now = new Date();
+  const keys = [];
+  for(let i=0;i<n;i++){
+    const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+    keys.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
+  }
+  return keys;
+}
+
+function monthLabel(key){
+  const [y,m] = key.split('-').map(Number);
+  const d = new Date(y, m-1, 1);
+  return d.toLocaleDateString('it-IT', {month:'long', year:'numeric'});
+}
+
+function itemsFor(key){
+  return state.items.filter(it => it.month === key);
+}
+
+function activeItemsFor(key){
+  return itemsFor(key).filter(it => !it.purchased);
+}
+
+function monthTotal(key){
+  // only what's still to be bought, not what's already purchased
+  return activeItemsFor(key).reduce((s,it)=> s + (Number(it.price)||0), 0);
+}
+
+function fmtEuro(n){
+  return '€' + n.toLocaleString('it-IT', {maximumFractionDigits:0});
+}
+
+function isFull(key){
+  return activeItemsFor(key).length >= state.cap;
+}
+
+// Two housekeeping rules, run before every render:
+// 1) A non-purchased item whose month has already passed rejoins "In sospeso"
+//    instead of disappearing silently.
+// 2) A purchased item (paid in advance) is removed for good once its month
+//    reaches the current one — same end result as marking it paid on the day.
+function sweepExpiredMonths(){
+  const currentKeys = monthKeys(12);
+  const firstKey = currentKeys[0];
+  let changed = false;
+
+  state.items.forEach(it => {
+    if(it.month !== 'backlog' && !it.purchased && it.month < firstKey){
+      it.returnedFrom = it.month;
+      it.month = 'backlog';
+      changed = true;
+    }
+  });
+
+  const before = state.items.length;
+  state.items = state.items.filter(it => {
+    const shouldRemove = it.purchased && it.month !== 'backlog' && it.month <= firstKey;
+    return !shouldRemove;
+  });
+  if(state.items.length !== before) changed = true;
+
+  if(changed) saveState();
+}
+
+function render(){
+  sweepExpiredMonths();
+  renderSyncStatus();
+  const cap = state.cap;
+  document.getElementById('capInput').value = cap;
+
+  const keys = monthKeys(12);
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  // Year total across scheduled months
+  const yearSum = keys.reduce((s,k)=> s + monthTotal(k), 0);
+  document.getElementById('yearTotal').textContent = fmtEuro(yearSum);
+
+  // Backlog column
+  board.appendChild(buildColumn({
+    key:'backlog',
+    isBacklog:true,
+    title:'In sospeso',
+    indexLabel:'IDEE'
+  }));
+
+  // Month columns
+  keys.forEach((key, i) => {
+    board.appendChild(buildColumn({
+      key,
+      isBacklog:false,
+      title: monthLabel(key),
+      indexLabel: 'PAG. ' + String(i+1).padStart(2,'0')
+    }));
+  });
+
+  updateMobileUI();
+}
+
+// ============ Mobile pagination (no effect on desktop layout) ============
+// Page 0 = "In sospeso", pages 1..12 = the 12 month columns, same order as
+// they appear on desktop. Only visual (which .col is shown); data is shared.
+let mobilePageIndex = 1; // land on the current month by default
+
+function pageKeyForIndex(i){
+  return i === 0 ? 'backlog' : monthKeys(12)[i-1];
+}
+
+function pageLabelForIndex(i){
+  return i === 0 ? 'In sospeso' : monthLabel(monthKeys(12)[i-1]);
+}
+
+function goToPage(i){
+  if(i < 0) i = 0;
+  if(i > 12) i = 12;
+  mobilePageIndex = i;
+  updateMobileUI();
+}
+
+function updateMobileUI(){
+  const activeKey = pageKeyForIndex(mobilePageIndex);
+  document.querySelectorAll('#board .col').forEach(col => {
+    col.classList.toggle('mobile-active', col.dataset.key === activeKey);
+  });
+  const idxEl = document.getElementById('mpIndex');
+  const titleEl = document.getElementById('mpTitle');
+  if(idxEl && titleEl){
+    idxEl.textContent = mobilePageIndex === 0 ? 'IDEE' : 'PAG. ' + String(mobilePageIndex).padStart(2,'0');
+    titleEl.textContent = pageLabelForIndex(mobilePageIndex);
+  }
+}
+
+function buildColumn({key, isBacklog, title, indexLabel}){
+  const col = document.createElement('div');
+  col.className = 'col' + (isBacklog ? ' backlog' : '');
+  col.dataset.key = key;
+
+  const head = document.createElement('div');
+  head.className = 'col-head';
+
+  const idx = document.createElement('div');
+  idx.className = 'col-index';
+  idx.textContent = indexLabel;
+  head.appendChild(idx);
+
+  const h = document.createElement('div');
+  h.className = 'col-title';
+  h.textContent = title;
+  head.appendChild(h);
+
+  if(!isBacklog){
+    const count = activeItemsFor(key).length;
+    const dots = document.createElement('div');
+    dots.className = 'dots' + (count >= state.cap ? ' full' : '');
+    for(let i=0;i<state.cap;i++){
+      const d = document.createElement('span');
+      d.className = 'dot' + (i < count ? ' filled' : '');
+      dots.appendChild(d);
+    }
+    head.appendChild(dots);
+
+    const total = monthTotal(key);
+    if(total > 0){
+      const tot = document.createElement('div');
+      tot.className = 'month-total';
+      tot.textContent = fmtEuro(total) + ' totale rate';
+      head.appendChild(tot);
+    }
+  }
+
+  col.appendChild(head);
+
+  const itemsWrap = document.createElement('div');
+  itemsWrap.className = 'items';
+
+  const list = itemsFor(key).slice().sort((a,b) => (a.purchased===b.purchased) ? 0 : (a.purchased ? 1 : -1));
+  if(list.length === 0){
+    const hint = document.createElement('div');
+    hint.className = 'empty-hint';
+    hint.textContent = isBacklog ? 'Nessuna idea in attesa.' : 'Vuoto.';
+    itemsWrap.appendChild(hint);
+  }
+
+  list.forEach(it => itemsWrap.appendChild(buildItemCard(it, key)));
+  col.appendChild(itemsWrap);
+
+  // Add control
+  const full = !isBacklog && isFull(key);
+
+  if(openForm === key){
+    col.appendChild(buildMiniForm(key));
+  } else {
+    const btn = document.createElement('button');
+    btn.className = 'add-btn';
+    btn.textContent = full ? 'Mese pieno' : '+ Aggiungi';
+    btn.disabled = full;
+    btn.onclick = () => { openForm = key; render(); };
+    col.appendChild(btn);
+
+    if(full){
+      const note = document.createElement('div');
+      note.className = 'full-note';
+      note.textContent = `Hai già ${state.cap} elementi qui. Sposta qualcosa fuori, scegli un altro mese, o mettilo in "In sospeso".`;
+      col.appendChild(note);
+    }
+  }
+
+  return col;
+}
+
+function buildItemCard(it, currentKey){
+  const card = document.createElement('div');
+  card.className = 'item' + (it.purchased ? ' purchased' : '');
+
+  const del = document.createElement('button');
+  del.className = 'del-btn';
+  del.style.position = 'absolute';
+  del.style.top = '0.5rem';
+  del.style.right = '0.4rem';
+  del.textContent = '×';
+  del.onclick = () => {
+    state.items = state.items.filter(x => x.id !== it.id);
+    saveState(); render();
+  };
+  card.appendChild(del);
+
+  if(it.returnedFrom && it.month === 'backlog'){
+    const badge = document.createElement('div');
+    badge.className = 'returned-badge';
+    badge.textContent = '↺ rientrato da ' + monthLabel(it.returnedFrom);
+    card.appendChild(badge);
+  }
+
+  const title = document.createElement('p');
+  title.className = 'item-title';
+  title.textContent = it.title;
+  card.appendChild(title);
+
+  if(it.price || it.service){
+    const priceRow = document.createElement('div');
+    priceRow.className = 'item-price-row';
+    if(it.price){
+      const price = document.createElement('span');
+      price.className = 'item-price';
+      price.textContent = fmtEuro(Number(it.price));
+      priceRow.appendChild(price);
+    }
+    if(it.service){
+      const service = document.createElement('span');
+      service.className = 'item-service';
+      service.dataset.service = it.service;
+      service.textContent = it.service;
+      priceRow.appendChild(service);
+    }
+    card.appendChild(priceRow);
+  }
+
+  if(it.url){
+    const link = document.createElement('a');
+    link.className = 'item-link';
+    link.href = it.url;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.textContent = '↗ apri sito';
+    card.appendChild(link);
+  }
+
+  const row = document.createElement('div');
+  row.className = 'item-row';
+
+  const dateGroup = document.createElement('div');
+  dateGroup.className = 'date-group';
+
+  const daySelect = document.createElement('select');
+  daySelect.className = 'day-select';
+  const noDayOpt = document.createElement('option');
+  noDayOpt.value = '';
+  noDayOpt.textContent = '—';
+  daySelect.appendChild(noDayOpt);
+  for(let d=1; d<=31; d++){
+    const opt = document.createElement('option');
+    opt.value = String(d);
+    opt.textContent = String(d);
+    daySelect.appendChild(opt);
+  }
+  daySelect.value = it.day ? String(it.day) : '';
+  daySelect.title = 'Giorno della rata';
+  daySelect.onchange = (e) => {
+    it.day = e.target.value ? Number(e.target.value) : null;
+    saveState(); render();
+  };
+  dateGroup.appendChild(daySelect);
+
+  const select = document.createElement('select');
+  const backlogOpt = document.createElement('option');
+  backlogOpt.value = 'backlog';
+  backlogOpt.textContent = 'In sospeso';
+  select.appendChild(backlogOpt);
+
+  monthKeys(12).forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = monthLabel(k);
+    select.appendChild(opt);
+  });
+  select.value = it.month;
+
+  select.onchange = (e) => {
+    const dest = e.target.value;
+    if(dest !== 'backlog' && activeItemsFor(dest).length >= state.cap && dest !== it.month){
+      alert(`"${monthLabel(dest)}" è già pieno (${state.cap}/${state.cap}). Sposta prima qualcos'altro.`);
+      select.value = it.month;
+      return;
+    }
+    it.month = dest;
+    delete it.returnedFrom;
+    saveState(); render();
+  };
+
+  dateGroup.appendChild(select);
+  row.appendChild(dateGroup);
+
+  if(currentKey !== 'backlog'){
+    const buyBtn = document.createElement('button');
+    const isArmed = armedDelete.has(it.id);
+    buyBtn.className = 'buy-btn' + (isArmed ? ' armed' : '');
+    buyBtn.textContent = isArmed ? '🗑' : '✓';
+    buyBtn.title = isArmed ? 'Clicca di nuovo per confermare la rimozione' : 'Segna come pagato (rimuove l\'elemento)';
+    buyBtn.onclick = () => {
+      if(armedDelete.has(it.id)){
+        armedDelete.delete(it.id);
+        state.items = state.items.filter(x => x.id !== it.id);
+        saveState(); render();
+      } else {
+        armedDelete.add(it.id);
+        render();
+        setTimeout(() => {
+          if(armedDelete.has(it.id)){
+            armedDelete.delete(it.id);
+            render();
+          }
+        }, 2500);
+      }
+    };
+    row.appendChild(buyBtn);
+  }
+
+  card.appendChild(row);
+
+  return card;
+}
+
+function buildMiniForm(key){
+  const wrap = document.createElement('div');
+  wrap.className = 'mini-form';
+
+  const titleInput = document.createElement('input');
+  titleInput.placeholder = 'Cosa vuoi comprare';
+  titleInput.autofocus = true;
+
+  const priceInput = document.createElement('input');
+  priceInput.placeholder = 'Prezzo (€, opz.)';
+  priceInput.type = 'number';
+  priceInput.min = '0';
+
+  const serviceWrap = document.createElement('div');
+  serviceWrap.className = 'mini-form-field';
+  const serviceLabel = document.createElement('label');
+  serviceLabel.className = 'mini-form-label';
+  serviceLabel.textContent = 'Servizio';
+  const serviceSelect = document.createElement('select');
+  serviceSelect.className = 'mini-form-select';
+  [['', '— nessuno —'], ['Klarna','Klarna'], ['Paypal','Paypal'], ['Scalapay','Scalapay'], ['Altro','Altro']].forEach(([val, label]) => {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = label;
+    serviceSelect.appendChild(opt);
+  });
+  serviceWrap.appendChild(serviceLabel);
+  serviceWrap.appendChild(serviceSelect);
+
+  const dayWrap = document.createElement('div');
+  dayWrap.className = 'mini-form-field';
+  const dayLabel = document.createElement('label');
+  dayLabel.className = 'mini-form-label';
+  dayLabel.textContent = 'Giorno (opz.)';
+  const daySelect = document.createElement('select');
+  daySelect.className = 'mini-form-select';
+  const noDayOpt = document.createElement('option');
+  noDayOpt.value = '';
+  noDayOpt.textContent = '—';
+  daySelect.appendChild(noDayOpt);
+  for(let d=1; d<=31; d++){
+    const opt = document.createElement('option');
+    opt.value = String(d);
+    opt.textContent = String(d);
+    daySelect.appendChild(opt);
+  }
+  dayWrap.appendChild(dayLabel);
+  dayWrap.appendChild(daySelect);
+
+  const urlInput = document.createElement('input');
+  urlInput.placeholder = 'URL (opz.)';
+  urlInput.type = 'url';
+
+  wrap.appendChild(titleInput);
+  wrap.appendChild(priceInput);
+  wrap.appendChild(serviceWrap);
+  wrap.appendChild(dayWrap);
+  wrap.appendChild(urlInput);
+
+  const actions = document.createElement('div');
+  actions.className = 'mini-form-actions';
+
+  const cancel = document.createElement('button');
+  cancel.textContent = 'Annulla';
+  cancel.onclick = () => { openForm = null; render(); };
+
+  const save = document.createElement('button');
+  save.className = 'save';
+  save.textContent = 'Salva';
+  save.onclick = () => {
+    const title = titleInput.value.trim();
+    if(!title) return;
+    if(key !== 'backlog' && activeItemsFor(key).length >= state.cap){
+      alert('Questo mese si è riempito nel frattempo.');
+      openForm = null; render(); return;
+    }
+    state.items.push({
+      id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      title,
+      price: priceInput.value ? Number(priceInput.value) : null,
+      service: serviceSelect.value || null,
+      day: daySelect.value ? Number(daySelect.value) : null,
+      url: urlInput.value.trim() || null,
+      month: key,
+      purchased: false,
+      createdAt: Date.now()
+    });
+    saveState();
+    openForm = null;
+    render();
+  };
+
+  actions.appendChild(cancel);
+  actions.appendChild(save);
+  wrap.appendChild(actions);
+
+  titleInput.addEventListener('keydown', e => { if(e.key === 'Enter') save.onclick(); });
+
+  setTimeout(()=> titleInput.focus(), 0);
+
+  return wrap;
+}
+
+document.getElementById('capInput').addEventListener('change', (e) => {
+  let v = parseInt(e.target.value, 10);
+  if(isNaN(v) || v < 1) v = 1;
+  if(v > 12) v = 12;
+  state.cap = v;
+  saveState();
+  render();
+});
+
+document.getElementById('syncToggle').addEventListener('click', () => {
+  const panel = document.getElementById('syncPanel');
+  panel.hidden = !panel.hidden;
+  if(!panel.hidden){
+    document.getElementById('syncApiKey').value = syncConfig.apiKey;
+    document.getElementById('syncItemUrl').value = syncConfig.itemUrl;
+  }
+});
+
+document.getElementById('syncSaveBtn').addEventListener('click', async () => {
+  syncConfig.apiKey = document.getElementById('syncApiKey').value.trim();
+  syncConfig.itemUrl = document.getElementById('syncItemUrl').value.trim();
+  saveSyncConfig();
+  lastSyncError = '';
+  if(!syncConfig.itemUrl){
+    setSyncState('idle');
+    updateSyncStatusText('Nessun URL item inserito: crea prima l\'item su JsonStorage.net e incolla qui l\'URL "Get JSON".');
+    return;
+  }
+  const ok = await pullFromCloud();
+  if(ok){
+    render();
+  } else if(syncConfig.apiKey){
+    // Se il pull fallisce (es. item vuoto o non ancora popolato) proviamo comunque a scrivere lo stato attuale.
+    await pushToCloud();
+  }
+});
+
+document.getElementById('syncPullBtn').addEventListener('click', async () => {
+  lastSyncError = '';
+  const ok = await pullFromCloud();
+  if(ok) render();
+});
+
+// Mobile page-nav (chevrons) and floating navbar — no-op visually on desktop.
+document.getElementById('mpPrev').addEventListener('click', () => goToPage(mobilePageIndex - 1));
+document.getElementById('mpNext').addEventListener('click', () => goToPage(mobilePageIndex + 1));
+document.getElementById('navIdee').addEventListener('click', () => goToPage(0));
+document.getElementById('navOggi').addEventListener('click', () => goToPage(1));
+document.getElementById('navAdd').addEventListener('click', () => {
+  openForm = pageKeyForIndex(mobilePageIndex);
+  render();
+});
+
+(async function init(){
+  if(syncConfig.itemUrl){
+    await pullFromCloud();
+  }
+  render();
+})();
+</script>
+
+</body>
+</html>
