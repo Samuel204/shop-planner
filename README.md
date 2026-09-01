@@ -88,6 +88,6 @@ L'obiettivo finale è creare uno strumento semplice per **pianificare gli acquis
 * HTML
 * CSS
 * JavaScript
-* Local Storage API (jsonbin)
+* Local Storage API (github git)
 
 Non è previsto un backend: tutti i dati vengono memorizzati localmente nel browser.
