@@ -1373,7 +1373,7 @@ function buildMiniForm(key){
       alert('Questo mese si è riempito nel frattempo.');
       openForm = null; render(); return;
     }
-    state.items.push({
+    state.items.unshift({
       id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
       title,
       price: priceInput.value ? Number(priceInput.value) : null,
