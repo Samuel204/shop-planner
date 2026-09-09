@@ -93,6 +93,125 @@
   }
   .year-total-standalone b{ color:var(--ink); font-weight:600; }
 
+  .year-total-with-settings{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:0.35rem 0.6rem;
+    width:fit-content;
+    height:fit-content;
+    position:relative;
+    z-index:1;
+    overflow:visible;
+  }
+
+  .year-total-display{
+    display:flex;
+    align-items:center;
+    gap:0.4rem;
+    pointer-events:none;
+    font-size:0.85rem;
+  }
+
+  .year-total-display svg{
+    width:0.9rem;
+    height:0.9rem;
+    stroke:var(--ink-soft);
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-width:1.7;
+    flex-shrink:0;
+  }
+
+  .year-total-display b{ color:var(--ink); font-weight:600; }
+
+  .year-total-with-settings .settings-toggle{
+    width:1.6rem;
+    height:1.6rem;
+    border:none;
+    border-radius:50%;
+    background:none;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+    flex-shrink:0;
+  }
+
+  .year-total-with-settings .settings-toggle:hover{
+    background:var(--paper-2);
+    color:var(--brass);
+  }
+
+  .year-total-with-settings .settings-toggle svg{
+    width:0.85rem;
+    height:0.85rem;
+    stroke:currentColor;
+    fill:none;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-width:1.8;
+  }
+
+  .year-total-with-settings .settings-wrap{
+    display:inline-flex;
+    position:relative;
+    z-index:100;
+  }
+
+  .year-total-with-settings .settings-tooltip{
+    position:absolute;
+    bottom:calc(100% + 0.55rem);
+    top:auto;
+    left:50%;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:var(--paper);
+    font-family:'Inter', sans-serif;
+    font-size:0.78rem;
+    white-space:nowrap;
+    padding:0.4rem 0.7rem;
+    border-radius:6px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .15s ease;
+    z-index:9999;
+    margin-top:0;
+  }
+
+  .year-total-with-settings .settings-tooltip::before{
+    content:'';
+    position:absolute;
+    top:100%;
+    bottom:auto;
+    left:50%;
+    transform:translateX(-50%);
+    border:5px solid transparent;
+    border-top-color:var(--ink);
+    border-bottom-color:transparent;
+    margin-bottom:0;
+    margin-top:-0.55rem;
+  }
+
+  .year-total-with-settings .settings-wrap:hover .settings-tooltip{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  @media (max-width: 640px){
+    .year-total-with-settings{
+      width:100%;
+      justify-content:flex-start;
+    }
+  }
+
   @media (max-width: 640px){
     .header-container{
       grid-template-columns:1fr;
@@ -106,16 +225,32 @@
     }
 
     .header-controls{
-      flex-direction:column;
-      align-items:flex-start;
+      flex-direction:row;
+      align-items:center;
       gap:0.8rem;
       padding-top:0;
       margin-top:0.4rem;
+      flex-wrap:wrap;
+      justify-content:flex-start;
+      row-gap:0.6rem;
     }
 
     .year-total, .sync-toggle, .board-nav, .settings-toggle{
-      width:100%;
+      width:auto;
       justify-content:flex-start;
+      flex-shrink:1;
+      min-width:0;
+    }
+
+    .year-total-with-settings{
+      flex-shrink:0;
+      width:auto;
+      min-width:fit-content;
+    }
+
+    .sync-toggle{
+      flex-shrink:0;
+      white-space:nowrap;
     }
   }
 
@@ -184,19 +319,6 @@
     font-family:'JetBrains Mono', monospace;
     color:var(--ink);
     font-size:0.85rem;
-  }
-
-  /* ... existing code ... */
-  .year-total{
-    font-family:'JetBrains Mono', monospace;
-    color:var(--ink-soft);
-    display:flex;
-    align-items:center;
-    gap:0.5rem;
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:20px;
-    padding:0.5rem 1rem;
   }
   .year-total b{ color:var(--ink); font-weight:600; }
   .year-total svg{
@@ -1355,6 +1477,8 @@
     line-height:1.4;
   }
 
+  /* ============ BREAKPOINT: max-width 640px ============ */
+  /* ============ MOBILE ONLY (desktop layout above is untouched) ============ */
   @media (max-width: 640px){
     .add-sidebar{
       width:100%;
@@ -1372,7 +1496,6 @@
     }
   }
 
-  /* ============ MOBILE ONLY (desktop layout above is untouched) ============ */
   @media (max-width: 640px){
 
     #board{
@@ -1493,6 +1616,7 @@
     .nav-fab:active{ background:var(--brass-soft); }
   }
 
+  /* ============ BREAKPOINT: min-width 641px ============ */
   @media (min-width: 641px){
     .mobile-page-nav, .mobile-navbar{ display:none !important; }
   }
@@ -1669,24 +1793,26 @@
       <p class="subtitle">Le idee nascono libere in "In sospeso". Diventano un acquisto solo quando decidi consapevolmente in quale mese metterle — e ogni mese ha un tetto.</p>
 
       <div class="header-controls">
-            <span class="year-total">
-              <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
-              Totale pianificato: <b id="yearTotal">€0</b>
-            </span>
-        <span class="settings-wrap">
-              <button id="settingsToggle" class="settings-toggle" aria-label="Impostazioni">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              </button>
-              <span class="settings-tooltip">Impostazioni limiti</span>
-            </span>
+                <span class="year-total-with-settings">
+                  <div class="year-total-display">
+                    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
+                    Totale pianificato: <b id="yearTotal">€0</b>
+                  </div>
+                  <span class="settings-wrap">
+                    <button id="settingsToggle" class="settings-toggle" aria-label="Impostazioni">
+                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
+                    <span class="settings-tooltip">Impostazioni limiti</span>
+                  </span>
+                </span>
         <button id="syncToggle" class="sync-toggle">
           <span id="syncDot" class="sync-dot"></span>
           <span id="syncLabel">Sincronizzazione</span>
         </button>
         <span class="board-nav">
-              <button id="boardPrevBtn" class="board-arrow" aria-label="Colonna precedente">‹</button>
-              <button id="boardNextBtn" class="board-arrow" aria-label="Colonna successiva">›</button>
-            </span>
+                  <button id="boardPrevBtn" class="board-arrow" aria-label="Colonna precedente">‹</button>
+                  <button id="boardNextBtn" class="board-arrow" aria-label="Colonna successiva">›</button>
+                </span>
       </div>
     </div>
   </div>
