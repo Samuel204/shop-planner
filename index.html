@@ -213,6 +213,13 @@
   }
 
   @media (max-width: 640px){
+
+    #board{
+      overflow-x:hidden;
+      padding-bottom:6rem;
+      touch-action:pan-y;
+    }
+    
     .header-container{
       grid-template-columns:1fr;
       gap:1.6rem;
@@ -2654,23 +2661,51 @@ document.getElementById('navAdd').addEventListener('click', () => {
   openAddSidebar(pageKeyForIndex(mobilePageIndex));
 });
 
-// ── Touch swipe su mobile per cambiare mese ──────────────────────────────
-(function(){
-  let tx = 0, ty = 0;
-  const board = document.getElementById('board');
-  board.addEventListener('touchstart', e => {
-    tx = e.touches[0].clientX;
-    ty = e.touches[0].clientY;
-  }, { passive: true });
-  board.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - tx;
-    const dy = e.changedTouches[0].clientY - ty;
-    // solo se su mobile (colonne a larghezza piena) e il gesto è prevalentemente orizzontale
-    if(window.innerWidth > 640) return;
-    if(Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
-    goToPage(dx < 0 ? mobilePageIndex + 1 : mobilePageIndex - 1);
-  }, { passive: true });
-})();
+// Swipe orizzontale per cambiare mese su mobile
+let touchStartX = 0;
+let touchStartY = 0;
+
+const board = document.getElementById('board');
+
+board.addEventListener('touchstart', (event) => {
+  if (event.touches.length !== 1) return;
+
+  const touch = event.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}, { passive: true });
+
+board.addEventListener('touchend', (event) => {
+  if (!touchStartX && !touchStartY) return;
+
+  const touch = event.changedTouches[0];
+  const deltaX = touch.clientX - touchStartX;
+  const deltaY = touch.clientY - touchStartY;
+
+  // Reset per il gesto successivo
+  touchStartX = 0;
+  touchStartY = 0;
+
+  const swipeThreshold = 50;
+
+  // Ignora gli spostamenti principalmente verticali
+  if (
+          Math.abs(deltaX) < swipeThreshold ||
+          Math.abs(deltaX) <= Math.abs(deltaY)
+  ) {
+    return;
+  }
+
+  // Swipe verso sinistra: mese successivo
+  if (deltaX < 0) {
+    goToPage(mobilePageIndex + 1);
+  }
+
+  // Swipe verso destra: mese precedente
+  if (deltaX > 0) {
+    goToPage(mobilePageIndex - 1);
+  }
+}, { passive: true });
 
 // Desktop board arrows — no-op visually on mobile (hidden via CSS).
 document.getElementById('boardPrevBtn').addEventListener('click', () => scrollBoardBy(-1));
