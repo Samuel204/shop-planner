@@ -2654,6 +2654,23 @@ document.getElementById('navAdd').addEventListener('click', () => {
   openAddSidebar(pageKeyForIndex(mobilePageIndex));
 });
 
+// ── Touch swipe su mobile per cambiare mese ──────────────────────────────
+(function(){
+  let tx = 0, ty = 0;
+  const board = document.getElementById('board');
+  board.addEventListener('touchstart', e => {
+    tx = e.touches[0].clientX;
+    ty = e.touches[0].clientY;
+  }, { passive: true });
+  board.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - tx;
+    const dy = e.changedTouches[0].clientY - ty;
+    // solo se su mobile (colonne a larghezza piena) e il gesto è prevalentemente orizzontale
+    if(window.innerWidth > 640) return;
+    if(Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+    goToPage(dx < 0 ? mobilePageIndex + 1 : mobilePageIndex - 1);
+  }, { passive: true });
+})();
 
 // Desktop board arrows — no-op visually on mobile (hidden via CSS).
 document.getElementById('boardPrevBtn').addEventListener('click', () => scrollBoardBy(-1));
