@@ -219,7 +219,7 @@
       padding-bottom:6rem;
       touch-action:pan-y;
     }
-    
+
     .header-container{
       grid-template-columns:1fr;
       gap:1.6rem;
@@ -898,6 +898,7 @@
     max-width:118px;
   }
 
+  /*Close btn*/
   .del-btn{
     background:none;
     border:none;
@@ -907,8 +908,29 @@
     line-height:1;
     padding:0.2rem;
     opacity:0.55;
+    display:flex;
+    align-items:center;
+    justify-content:center;
   }
-  .del-btn:hover{ opacity:1; color:var(--full); }
+
+  .del-btn:hover{
+    opacity:1;
+    color:var(--full);
+  }
+
+  .del-btn.armed{
+    background:var(--full);
+    color:#fff;
+    border-radius:4px;
+    opacity:1;
+    width:1.6rem;
+    height:1.6rem;
+  }
+
+  .del-btn.armed svg{
+    width:0.9rem;
+    height:0.9rem;
+  }
 
   .item.purchased{
     opacity:0.5;
@@ -2362,15 +2384,26 @@ function buildItemCard(it, currentKey){
   card.className = 'item' + (it.purchased ? ' purchased' : '');
 
   const del = document.createElement('button');
+
   del.className = 'del-btn';
   del.style.position = 'absolute';
   del.style.top = '0.5rem';
   del.style.right = '0.4rem';
   del.textContent = '×';
+  del.title = 'Prepara la rimozione';
+
   del.onclick = () => {
-    state.items = state.items.filter(x => x.id !== it.id);
-    saveState(); render();
+    armedDelete.add(it.id);
+    render();
+
+    setTimeout(() => {
+      if(armedDelete.has(it.id)){
+        armedDelete.delete(it.id);
+        render();
+      }
+    }, 2500);
   };
+
   card.appendChild(del);
 
   if(it.returnedFrom && it.month === 'backlog'){
@@ -2472,19 +2505,27 @@ function buildItemCard(it, currentKey){
   if(currentKey !== 'backlog'){
     const buyBtn = document.createElement('button');
     const isArmed = armedDelete.has(it.id);
+
     buyBtn.className = 'buy-btn' + (isArmed ? ' armed' : '');
+
     buyBtn.innerHTML = isArmed
             ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>'
             : '✓';
-    buyBtn.title = isArmed ? 'Clicca di nuovo per confermare la rimozione' : 'Segna come pagato (rimuove l\'elemento)';
+
+    buyBtn.title = isArmed
+            ? 'Clicca di nuovo per confermare la rimozione'
+            : 'Segna come pagato';
+
     buyBtn.onclick = () => {
       if(armedDelete.has(it.id)){
         armedDelete.delete(it.id);
         state.items = state.items.filter(x => x.id !== it.id);
-        saveState(); render();
+        saveState();
+        render();
       } else {
         armedDelete.add(it.id);
         render();
+
         setTimeout(() => {
           if(armedDelete.has(it.id)){
             armedDelete.delete(it.id);
@@ -2493,6 +2534,7 @@ function buildItemCard(it, currentKey){
         }, 2500);
       }
     };
+
     row.appendChild(buyBtn);
   }
 
