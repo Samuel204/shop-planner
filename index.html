@@ -2502,7 +2502,7 @@ function buildItemCard(it, currentKey){
   dateGroup.appendChild(select);
   row.appendChild(dateGroup);
 
-  if(currentKey !== 'backlog'){
+  if(currentKey !== 'backlog' || armedDelete.has(it.id)){
     const buyBtn = document.createElement('button');
     const isArmed = armedDelete.has(it.id);
 
