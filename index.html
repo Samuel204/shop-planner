@@ -972,21 +972,63 @@
   }
 
   .add-btn{
-    margin-top:0.8rem;
-    background:none;
-    border:1px dashed var(--line);
-    border-radius:6px;
-    padding:0.55rem;
-    color:var(--ink-soft);
-    font-size:0.8rem;
+    appearance:none;
+    -webkit-appearance:none;
+
+    width:1.8rem;
+    height:1.8rem;
+    margin:0;
+    padding:0;
+
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:50%;
+
+    color:var(--ink);
     font-family:'Inter', sans-serif;
+    font-size:1.05rem;
+    font-weight:400;
+    line-height:1;
     cursor:pointer;
-    transition:border-color .15s, color .15s;
+
+    transition:
+            background .15s ease,
+            border-color .15s ease,
+            color .15s ease;
   }
-  .add-btn:hover{ border-color:var(--brass-soft); color:var(--brass); }
+
+  .add-btn:hover{
+    background:var(--paper-2);
+    border-color:var(--brass-soft);
+    color:var(--brass);
+  }
+
+  .add-btn:focus-visible{
+    outline:2px solid var(--brass-soft);
+    outline-offset:2px;
+  }
+
   .add-btn:disabled{
     opacity:0.4;
     cursor:not-allowed;
+  }
+
+  .col-title-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.6rem;
+    margin:0.15rem 0 0.5rem;
+  }
+
+  .col-title-row .col-title{
+    min-width:0;
+    margin:0;
   }
 
   .full-note{
@@ -2314,10 +2356,28 @@ function buildColumn({key, isBacklog, title, indexLabel}){
   idx.textContent = indexLabel;
   head.appendChild(idx);
 
+  const full = !isBacklog && isFull(key);
+
+  const titleRow = document.createElement('div');
+  titleRow.className = 'col-title-row';
+
   const h = document.createElement('div');
   h.className = 'col-title';
   h.textContent = title;
-  head.appendChild(h);
+  titleRow.appendChild(h);
+
+  if(openForm !== key){
+    const btn = document.createElement('button');
+    btn.className = 'add-btn';
+    btn.textContent = '+';
+    btn.title = full ? 'Mese pieno' : 'Aggiungi un elemento';
+    btn.setAttribute('aria-label', full ? 'Mese pieno' : 'Aggiungi un elemento');
+    btn.disabled = full;
+    btn.onclick = () => { openAddSidebar(key); };
+    titleRow.appendChild(btn);
+  }
+
+  head.appendChild(titleRow);
 
   if(!isBacklog){
     const count = activeItemsFor(key).length;
@@ -2355,25 +2415,13 @@ function buildColumn({key, isBacklog, title, indexLabel}){
   list.forEach(it => itemsWrap.appendChild(buildItemCard(it, key)));
   col.appendChild(itemsWrap);
 
-  // Add control
-  const full = !isBacklog && isFull(key);
-
   if(openForm === key){
     col.appendChild(buildMiniForm(key));
-  } else {
-    const btn = document.createElement('button');
-    btn.className = 'add-btn';
-    btn.textContent = full ? 'Mese pieno' : '+ Aggiungi';
-    btn.disabled = full;
-    btn.onclick = () => { openAddSidebar(key); };
-    col.appendChild(btn);
-
-    if(full){
-      const note = document.createElement('div');
-      note.className = 'full-note';
-      note.textContent = `Hai già ${state.cap} elementi qui. Sposta qualcosa fuori, scegli un altro mese, o mettilo in "In sospeso".`;
-      col.appendChild(note);
-    }
+  } else if(full){
+    const note = document.createElement('div');
+    note.className = 'full-note';
+    note.textContent = `Hai già ${state.cap} elementi qui. Sposta qualcosa fuori, scegli un altro mese, o mettilo in "In sospeso".`;
+    col.appendChild(note);
   }
 
   return col;
