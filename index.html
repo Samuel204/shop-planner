@@ -1107,38 +1107,46 @@
   }
 
 
-  /* ============ ADD SIDEBAR ============ */
+  /* ============ ADD MODAL ============ */
   .sidebar-overlay{
     display:none;
     position:fixed;
     inset:0;
-    background:rgba(31,42,36,0.18);
-    z-index:40;
-    backdrop-filter:blur(1px);
+    background:rgba(31,42,36,0.3);
+    z-index:60;
+    backdrop-filter:blur(2px);
   }
-  .sidebar-overlay.open{ display:block; }
+
+  .sidebar-overlay.open{
+    display:block;
+  }
 
   .add-sidebar{
     position:fixed;
     top:50%;
-    right:2rem;
-    transform:translateY(-50%) translateX(calc(100% + 1rem));
-    width:320px;
-    max-width:90vw;
-    height:auto;
+    left:50%;
+    right:auto;
+    transform:translate(-50%, -50%) scale(0.95);
+    opacity:0;
+    width:90%;
+    max-width:420px;
     max-height:90vh;
     background:var(--card);
     border:1px solid var(--line);
     border-radius:12px;
-    box-shadow:0 12px 48px rgba(31,42,36,0.16);
-    z-index:50;
+    box-shadow:0 16px 56px rgba(31,42,36,0.2);
+    z-index:70;
     display:flex;
     flex-direction:column;
-    transition:transform .24s cubic-bezier(.4,0,.2,1);
+    transition:opacity .2s ease, transform .2s ease;
+    pointer-events:none;
     overflow:hidden;
   }
+
   .add-sidebar.open{
-    transform:translateY(-50%) translateX(0);
+    transform:translate(-50%, -50%) scale(1);
+    opacity:1;
+    pointer-events:auto;
   }
 
   .sidebar-header{
@@ -1549,24 +1557,6 @@
   }
 
   /* ============ BREAKPOINT: max-width 640px ============ */
-  /* ============ MOBILE ONLY (desktop layout above is untouched) ============ */
-  @media (max-width: 640px){
-    .add-sidebar{
-      width:100%;
-      top:auto;
-      bottom:0;
-      height:92vh;
-      max-height:none;
-      border:none;
-      border-top:1px solid var(--line);
-      border-radius:14px 14px 0 0;
-      transform:translateY(100%);
-    }
-    .add-sidebar.open{
-      transform:translateY(0);
-    }
-  }
-
   @media (max-width: 640px){
 
     #board{
