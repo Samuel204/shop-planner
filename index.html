@@ -882,9 +882,14 @@
     gap:0.25rem;
   }
 
-  .item .day-select{
-    width:3.4rem;
+  .item .date-input{
+    width:7rem;
     flex-shrink:0;
+  }
+
+  .item .month-select{
+    flex:1;
+    max-width:118px;
   }
 
   .item select{
@@ -895,7 +900,16 @@
     border-radius:4px;
     background:var(--paper);
     color:var(--ink-soft);
-    max-width:118px;
+  }
+
+  .item input[type="date"]{
+    font-family:'Inter', sans-serif;
+    font-size:0.72rem;
+    padding:0.2rem 0.3rem;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:var(--paper);
+    color:var(--ink-soft);
   }
 
   /*Close btn*/
@@ -2491,53 +2505,53 @@ function buildItemCard(it, currentKey){
   const dateGroup = document.createElement('div');
   dateGroup.className = 'date-group';
 
-  const daySelect = document.createElement('select');
-  daySelect.className = 'day-select';
-  const noDayOpt = document.createElement('option');
-  noDayOpt.value = '';
-  noDayOpt.textContent = '—';
-  daySelect.appendChild(noDayOpt);
-  for(let d=1; d<=31; d++){
-    const opt = document.createElement('option');
-    opt.value = String(d);
-    opt.textContent = String(d);
-    daySelect.appendChild(opt);
+  // Input data unificato (giorno + mese insieme)
+  const dateInput = document.createElement('input');
+  dateInput.type = 'date';
+  dateInput.className = 'date-input';
+  dateInput.title = 'Seleziona giorno e mese';
+
+  // Costruisci il valore ISO (YYYY-MM-DD)
+  // Se l'item ha un mese, usa quello; altrimenti usa il mese corrente
+  if(it.month !== 'backlog'){
+    const [y, m] = it.month.split('-').map(Number);
+    const d = it.day || 1;
+    const dateStr = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    dateInput.value = dateStr;
   }
-  daySelect.value = it.day ? String(it.day) : '';
-  daySelect.title = 'Giorno della rata';
-  daySelect.onchange = (e) => {
-    it.day = e.target.value ? Number(e.target.value) : null;
-    saveState(); render();
-  };
-  dateGroup.appendChild(daySelect);
 
-  const select = document.createElement('select');
-  const backlogOpt = document.createElement('option');
-  backlogOpt.value = 'backlog';
-  backlogOpt.textContent = 'In sospeso';
-  select.appendChild(backlogOpt);
+  dateInput.onchange = (e) => {
+    if(e.target.value){
+      const [y, m, d] = e.target.value.split('-').map(Number);
+      const newMonth = `${y}-${String(m).padStart(2,'0')}`;
 
-  monthKeys(12).forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = monthLabel(k);
-    select.appendChild(opt);
-  });
-  select.value = it.month;
+      // Verifica se il mese di destinazione è pieno
+      if(activeItemsFor(newMonth).length >= state.cap && newMonth !== it.month){
+        alert(`"${monthLabel(newMonth)}" è già pieno (${state.cap}/${state.cap}). Sposta prima qualcos'altro.`);
+        // Ripristina il valore precedente
+        if(it.month !== 'backlog'){
+          const [py, pm] = it.month.split('-').map(Number);
+          const pd = it.day || 1;
+          dateInput.value = `${py}-${String(pm).padStart(2,'0')}-${String(pd).padStart(2,'0')}`;
+        } else {
+          dateInput.value = '';
+        }
+        return;
+      }
 
-  select.onchange = (e) => {
-    const dest = e.target.value;
-    if(dest !== 'backlog' && activeItemsFor(dest).length >= state.cap && dest !== it.month){
-      alert(`"${monthLabel(dest)}" è già pieno (${state.cap}/${state.cap}). Sposta prima qualcos'altro.`);
-      select.value = it.month;
-      return;
+      it.month = newMonth;
+      it.day = d;
+      delete it.returnedFrom;
+    } else {
+      // Se l'input è vuoto, riporta l'item in "In sospeso"
+      it.month = 'backlog';
+      it.day = null;
+      delete it.returnedFrom;
     }
-    it.month = dest;
-    delete it.returnedFrom;
     saveState(); render();
   };
+  dateGroup.appendChild(dateInput);
 
-  dateGroup.appendChild(select);
   row.appendChild(dateGroup);
 
   if(currentKey !== 'backlog' || armedDelete.has(it.id)){
