@@ -1456,6 +1456,28 @@
     border-color:var(--brass-soft);
   }
 
+  /* Riga "Servizio" + "Rate" affiancati */
+  .sb-pair{
+    display:flex;
+    align-items:flex-start;
+    gap:0.6rem;
+  }
+  .sb-pair-main{ flex:1; min-width:0; }
+  .sb-pair-side{ flex:0 0 5.2rem; }
+  .sb-pair .sb-input,
+  .sb-pair .sb-select{ height:2.15rem; }
+  .sb-input:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+  }
+  .sb-hint{
+    margin-top:0.4rem;
+    font-size:0.72rem;
+    line-height:1.4;
+    color:var(--ink-soft);
+  }
+  .sb-hint:empty{ display:none; }
+
   .sb-divider{
     height:1px;
     background:var(--line);
@@ -1930,14 +1952,23 @@
         <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       </div>
       <div class="sb-field-body">
-        <span class="sb-label">Servizio</span>
-        <select id="sbService" class="sb-select">
-          <option value="">— nessuno —</option>
-          <option value="Klarna">Klarna</option>
-          <option value="Paypal">Paypal</option>
-          <option value="Scalapay">Scalapay</option>
-          <option value="Altro">Altro</option>
-        </select>
+        <div class="sb-pair">
+          <div class="sb-pair-main">
+            <span class="sb-label">Servizio</span>
+            <select id="sbService" class="sb-select">
+              <option value="">— nessuno —</option>
+              <option value="Klarna">Klarna</option>
+              <option value="Paypal">Paypal</option>
+              <option value="Scalapay">Scalapay</option>
+              <option value="Altro">Altro</option>
+            </select>
+          </div>
+          <div class="sb-pair-side">
+            <label class="sb-label" for="sbRates" title="Quante volte l'elemento viene ripetuto nei mesi successivi">Rate</label>
+            <input id="sbRates" class="sb-input" type="number" min="0" step="1" inputmode="numeric" placeholder="0">
+          </div>
+        </div>
+        <div class="sb-hint" id="sbRatesHint"></div>
       </div>
     </div>
 
@@ -3056,6 +3087,69 @@ document.getElementById('board').addEventListener('scroll', updateBoardArrows);
 let sidebarTargetKey = null;
 let sidebarEditId = null; // id dell'elemento in modifica (null = nuovo elemento)
 
+// Quante rate (ripetizioni nei mesi successivi) sono possibili partendo da `key`,
+// dentro la finestra di 12 mesi mostrata dalla board.
+function maxRatesFor(key){
+  const keys = monthKeys(12);
+  const i = keys.indexOf(key);
+  return i < 0 ? 0 : keys.length - 1 - i;
+}
+
+// Mesi in cui verrà messo l'elemento: quello scelto + le `rates` ripetizioni successive.
+function monthsForRates(key, rates){
+  const keys = monthKeys(12);
+  const i = keys.indexOf(key);
+  return i < 0 ? [key] : keys.slice(i, i + rates + 1);
+}
+
+function updateRatesUI(){
+  const input = document.getElementById('sbRates');
+  const hint = document.getElementById('sbRatesHint');
+  const key = document.getElementById('sbMonth').value;
+  const max = maxRatesFor(key);
+
+  if(sidebarEditId){
+    input.disabled = true;
+    input.value = '';
+    hint.textContent = 'Le rate si impostano solo quando crei un nuovo elemento.';
+    return;
+  }
+  if(key === 'backlog'){
+    input.disabled = true;
+    input.value = '';
+    hint.textContent = 'Assegna l\'elemento a un mese per ripeterlo nei mesi successivi.';
+    return;
+  }
+  if(max === 0){
+    input.disabled = true;
+    input.value = '';
+    hint.textContent = 'Non ci sono mesi successivi disponibili dopo questo.';
+    return;
+  }
+
+  input.disabled = false;
+  input.max = String(max);
+  if(input.value !== ''){
+    let n = parseInt(input.value, 10);
+    if(isNaN(n) || n < 0) n = 0;
+    if(n > max) n = max;
+    input.value = String(n);
+  }
+  const n = parseInt(input.value, 10) || 0;
+  if(n === 0){
+    hint.textContent = `Ripetizioni nei mesi successivi (massimo ${max}).`;
+    return;
+  }
+  const months = monthsForRates(key, n);
+  const startYear = Number(key.split('-')[0]);
+  const names = months.slice(1).map(k => {
+    const [y, m] = k.split('-').map(Number);
+    return new Date(y, m-1, 1).toLocaleDateString('it-IT', y !== startYear ? {month:'long', year:'numeric'} : {month:'long'});
+  });
+  const startName = new Date(startYear, Number(key.split('-')[1])-1, 1).toLocaleDateString('it-IT', {month:'long'});
+  hint.textContent = `Verrà messo in ${startName} e ripetuto in: ${names.join(', ')} (${n + 1} elementi in tutto).`;
+}
+
 function openAddSidebar(key, item){
   sidebarTargetKey = key;
   sidebarEditId = item ? item.id : null;
@@ -3092,7 +3186,7 @@ function openAddSidebar(key, item){
     const note = document.getElementById('sbInfoNote');
     note.style.display = sbMonth.value !== 'backlog' ? 'flex' : 'none';
   }
-  sbMonth.onchange = updateInfoNote;
+  sbMonth.onchange = () => { updateInfoNote(); updateRatesUI(); };
   updateInfoNote();
 
   // Reset fields (o precompila se stiamo modificando un elemento)
@@ -3102,6 +3196,8 @@ function openAddSidebar(key, item){
   document.getElementById('sbService').value = (item && item.service) || '';
   document.getElementById('sbUrl').value = (item && item.url) || '';
   document.getElementById('sbPrivate').checked = !!(item && item.private);
+  document.getElementById('sbRates').value = '';
+  updateRatesUI();
   if(item && item.day && item.month !== 'backlog'){
     const [iy, im] = item.month.split('-').map(Number);
     sbDayEl.type = 'date';
@@ -3170,18 +3266,44 @@ function saveSidebarItem(){
     return;
   }
 
-  state.items.unshift({
-    id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
-    title,
-    price: priceRaw ? Number(priceRaw) : null,
-    service: document.getElementById('sbService').value || null,
-    day: dayVal,
-    url: urlRaw || null,
-    month: key,
-    purchased: false,
-    private: document.getElementById('sbPrivate').checked,
-    createdAt: Date.now()
+  // Rate: l'elemento viene messo nel mese scelto e duplicato nei mesi successivi
+  let rates = 0;
+  if(key !== 'backlog'){
+    rates = Math.min(maxRatesFor(key), Math.max(0, parseInt(document.getElementById('sbRates').value, 10) || 0));
+  }
+  const targetMonths = monthsForRates(key, rates);
+
+  // Controlla i mesi delle ripetizioni PRIMA di creare qualcosa (tutto o niente)
+  const fullMonths = targetMonths.slice(1).filter(m => activeItemsFor(m).length >= state.cap);
+  if(fullMonths.length){
+    alert(`Non posso creare le rate: ${fullMonths.map(monthLabel).join(', ')} ${fullMonths.length > 1 ? 'sono già pieni' : 'è già pieno'} (${state.cap}/${state.cap}). Scegli meno rate o un altro mese.`);
+    return;
+  }
+
+  const service = document.getElementById('sbService').value || null;
+  const isPrivate = document.getElementById('sbPrivate').checked;
+  const createdAt = Date.now();
+  const newItems = targetMonths.map(m => {
+    // stesso giorno del mese, ma mai oltre l'ultimo giorno di quel mese (es. 31 → 30)
+    let day = dayVal;
+    if(day){
+      const [y, mo] = m.split('-').map(Number);
+      day = Math.min(day, new Date(y, mo, 0).getDate());
+    }
+    return {
+      id: 'it_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+      title,
+      price: priceRaw ? Number(priceRaw) : null,
+      service,
+      day,
+      url: urlRaw || null,
+      month: m,
+      purchased: false,
+      private: isPrivate,
+      createdAt
+    };
   });
+  state.items.unshift(...newItems);
 
   saveState();
   closeAddSidebar();
@@ -3192,6 +3314,7 @@ document.getElementById('sidebarOverlay').addEventListener('click', closeAddSide
 document.getElementById('sidebarClose').addEventListener('click', closeAddSidebar);
 document.getElementById('sbCancelBtn').addEventListener('click', closeAddSidebar);
 document.getElementById('sbSaveBtn').addEventListener('click', saveSidebarItem);
+document.getElementById('sbRates').addEventListener('input', updateRatesUI);
 
 
 document.getElementById('addSidebar').addEventListener('keydown', e => {
