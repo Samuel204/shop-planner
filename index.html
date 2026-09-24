@@ -1027,49 +1027,75 @@
     width:100%;
   }
 
-  /*Close btn*/
-  .del-btn{
+  /* Menu "…" in alto a destra */
+  .item-menu-btn{
     background:none;
     border:none;
     color:var(--ink-soft);
     cursor:pointer;
-    font-size:1rem;
-    line-height:1;
     padding:0;
-    opacity:0.7;
     display:flex;
     align-items:center;
     justify-content:center;
     position:absolute;
-    top:1rem;
-    right:0.9rem;
-    width:1.6rem;
-    height:1.6rem;
+    top:0.85rem;
+    right:0.7rem;
+    width:1.8rem;
+    height:1.8rem;
+    border-radius:8px;
+    transition:background .15s, color .15s;
+  }
+  .item-menu-btn svg{
+    width:1.25rem;
+    height:1.25rem;
+  }
+  .item-menu-btn:hover,
+  .item-menu-btn[aria-expanded="true"]{
+    background:var(--paper-2);
+    color:var(--ink);
   }
 
-  .del-btn svg{
-    width:1.15rem;
-    height:1.15rem;
+  .item-menu{
+    display:none;
+    position:absolute;
+    top:2.8rem;
+    right:0.7rem;
+    z-index:20;
+    min-width:9.5rem;
+    padding:0.3rem;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 8px 24px rgba(31,42,36,0.14);
   }
+  .item-menu.open{ display:flex; flex-direction:column; }
 
-  .del-btn:hover{
-    opacity:1;
-    color:var(--full);
+  .item-menu-opt{
+    display:flex;
+    align-items:center;
+    gap:0.55rem;
+    width:100%;
+    padding:0.5rem 0.6rem;
+    background:none;
+    border:none;
+    border-radius:7px;
+    font-family:'Inter', sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    color:var(--ink);
+    text-align:left;
+    cursor:pointer;
+    transition:background .12s;
   }
-
-  .del-btn.armed{
-    background:var(--full);
-    color:#fff;
-    border-radius:50%;
-    opacity:1;
-    width:1.6rem;
-    height:1.6rem;
+  .item-menu-opt svg{
+    width:1rem;
+    height:1rem;
+    flex-shrink:0;
+    color:var(--ink-soft);
   }
-
-  .del-btn.armed svg{
-    width:0.9rem;
-    height:0.9rem;
-  }
+  .item-menu-opt:hover{ background:var(--paper-2); }
+  .item-menu-opt.danger{ color:var(--full); }
+  .item-menu-opt.danger svg{ color:var(--full); }
 
   .item.purchased{
     opacity:0.5;
@@ -2568,7 +2594,19 @@ const ICON_TRASH = `<svg ${SVG_ATTR}><polyline points="3 6 5 6 21 6"/><path d="M
 const ICON_WALLET = `<svg ${SVG_ATTR}><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>`;
 const ICON_CALENDAR = `<svg ${SVG_ATTR}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" stroke-width="2.4"/></svg>`;
 const ICON_CHEVRON = `<svg ${SVG_ATTR}><polyline points="6 9 12 15 18 9"/></svg>`;
+const ICON_MORE = `<svg ${SVG_ATTR}><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/></svg>`;
+const ICON_EDIT = `<svg ${SVG_ATTR}><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`;
 const ICON_CHECK = `<svg ${SVG_ATTR} stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+function closeItemMenus(){
+  document.querySelectorAll('.item-menu.open').forEach(m => {
+    m.classList.remove('open');
+    const b = m.previousElementSibling;
+    if(b) b.setAttribute('aria-expanded', 'false');
+  });
+}
+document.addEventListener('click', closeItemMenus);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeItemMenus(); });
 
 // "12 novembre" (giorno + mese per esteso) oppure null se l'item è in "In sospeso"
 function formatItemDate(it){
@@ -2581,14 +2619,8 @@ function buildItemCard(it, currentKey){
   const card = document.createElement('div');
   card.className = 'item' + (it.purchased ? ' purchased' : '');
 
-  const del = document.createElement('button');
-
-  del.className = 'del-btn';
-  del.innerHTML = ICON_TRASH;
-  del.title = 'Prepara la rimozione';
-  del.setAttribute('aria-label', 'Prepara la rimozione');
-
-  del.onclick = () => {
+  // Menu "…" (in alto a destra): Modifica / Elimina
+  const armDelete = () => {
     armedDelete.add(it.id);
     render();
 
@@ -2600,7 +2632,55 @@ function buildItemCard(it, currentKey){
     }, 2500);
   };
 
-  card.appendChild(del);
+  const menuBtn = document.createElement('button');
+  menuBtn.className = 'item-menu-btn';
+  menuBtn.type = 'button';
+  menuBtn.innerHTML = ICON_MORE;
+  menuBtn.title = 'Azioni';
+  menuBtn.setAttribute('aria-label', 'Azioni');
+  menuBtn.setAttribute('aria-haspopup', 'menu');
+  menuBtn.setAttribute('aria-expanded', 'false');
+
+  const menu = document.createElement('div');
+  menu.className = 'item-menu';
+  menu.setAttribute('role', 'menu');
+
+  const editOpt = document.createElement('button');
+  editOpt.type = 'button';
+  editOpt.className = 'item-menu-opt';
+  editOpt.setAttribute('role', 'menuitem');
+  editOpt.innerHTML = ICON_EDIT + '<span>Modifica</span>';
+  editOpt.onclick = (e) => {
+    e.stopPropagation();
+    closeItemMenus();
+    openAddSidebar(it.month, it);
+  };
+
+  const deleteOpt = document.createElement('button');
+  deleteOpt.type = 'button';
+  deleteOpt.className = 'item-menu-opt danger';
+  deleteOpt.setAttribute('role', 'menuitem');
+  deleteOpt.innerHTML = ICON_TRASH + '<span>Elimina</span>';
+  deleteOpt.onclick = (e) => {
+    e.stopPropagation();
+    closeItemMenus();
+    armDelete();
+  };
+
+  menu.append(editOpt, deleteOpt);
+
+  menuBtn.onclick = (e) => {
+    e.stopPropagation();
+    const willOpen = !menu.classList.contains('open');
+    closeItemMenus();
+    if(willOpen){
+      menu.classList.add('open');
+      menuBtn.setAttribute('aria-expanded', 'true');
+    }
+  };
+
+  card.appendChild(menuBtn);
+  card.appendChild(menu);
 
   if(it.returnedFrom && it.month === 'backlog'){
     const badge = document.createElement('div');
@@ -2974,9 +3054,16 @@ document.getElementById('board').addEventListener('scroll', updateBoardArrows);
 
 // ============ ADD SIDEBAR ============
 let sidebarTargetKey = null;
+let sidebarEditId = null; // id dell'elemento in modifica (null = nuovo elemento)
 
-function openAddSidebar(key){
+function openAddSidebar(key, item){
   sidebarTargetKey = key;
+  sidebarEditId = item ? item.id : null;
+
+  const sbTitleEl = document.querySelector('#addSidebar .sidebar-title');
+  const heading = item ? 'Modifica elemento' : 'Aggiungi un elemento';
+  if(sbTitleEl) sbTitleEl.textContent = heading;
+  document.getElementById('addSidebar').setAttribute('aria-label', heading);
 
   // Populate month selector
   const sbMonth = document.getElementById('sbMonth');
@@ -2991,6 +3078,13 @@ function openAddSidebar(key){
     opt.textContent = monthLabel(k);
     sbMonth.appendChild(opt);
   });
+  // un elemento già acquistato può stare in un mese passato: aggiungilo alle opzioni
+  if(!Array.from(sbMonth.options).some(o => o.value === key)){
+    const extra = document.createElement('option');
+    extra.value = key;
+    extra.textContent = monthLabel(key);
+    sbMonth.appendChild(extra);
+  }
   sbMonth.value = key;
 
   // Show/hide info note based on whether a month is selected
@@ -3001,15 +3095,23 @@ function openAddSidebar(key){
   sbMonth.onchange = updateInfoNote;
   updateInfoNote();
 
-  // Reset fields
-  document.getElementById('sbTitle').value = '';
-  document.getElementById('sbPrice').value = '';
-  document.getElementById('sbService').value = '';
-  document.getElementById('sbDay').value = '';
-  document.getElementById('sbDay').type = 'text';
-  document.getElementById('sbDay').setAttribute('readonly','');
-  document.getElementById('sbUrl').value = '';
-  document.getElementById('sbPrivate').checked = false;
+  // Reset fields (o precompila se stiamo modificando un elemento)
+  const sbDayEl = document.getElementById('sbDay');
+  document.getElementById('sbTitle').value = item ? item.title : '';
+  document.getElementById('sbPrice').value = (item && item.price != null) ? item.price : '';
+  document.getElementById('sbService').value = (item && item.service) || '';
+  document.getElementById('sbUrl').value = (item && item.url) || '';
+  document.getElementById('sbPrivate').checked = !!(item && item.private);
+  if(item && item.day && item.month !== 'backlog'){
+    const [iy, im] = item.month.split('-').map(Number);
+    sbDayEl.type = 'date';
+    sbDayEl.removeAttribute('readonly');
+    sbDayEl.value = `${iy}-${String(im).padStart(2,'0')}-${String(item.day).padStart(2,'0')}`;
+  } else {
+    sbDayEl.value = '';
+    sbDayEl.type = 'text';
+    sbDayEl.setAttribute('readonly','');
+  }
 
   document.getElementById('sidebarOverlay').classList.add('open');
   document.getElementById('addSidebar').classList.add('open');
@@ -3020,6 +3122,7 @@ function closeAddSidebar(){
   document.getElementById('sidebarOverlay').classList.remove('open');
   document.getElementById('addSidebar').classList.remove('open');
   sidebarTargetKey = null;
+  sidebarEditId = null;
 }
 
 function saveSidebarItem(){
@@ -3032,7 +3135,12 @@ function saveSidebarItem(){
   }
 
   const key = document.getElementById('sbMonth').value;
-  if(key !== 'backlog' && activeItemsFor(key).length >= state.cap){
+  const editing = sidebarEditId ? state.items.find(x => x.id === sidebarEditId) : null;
+  if(sidebarEditId && !editing){ closeAddSidebar(); render(); return; } // l'elemento non esiste più
+
+  // In modifica il limite conta solo se l'elemento cambia mese (e non è già acquistato)
+  const needsCapCheck = key !== 'backlog' && (!editing || (key !== editing.month && !editing.purchased));
+  if(needsCapCheck && activeItemsFor(key).length >= state.cap){
     alert(`"${monthLabel(key)}" è già pieno (${state.cap}/${state.cap}). Scegli un altro mese.`);
     return;
   }
@@ -3042,7 +3150,24 @@ function saveSidebarItem(){
   const dayInput = document.getElementById('sbDay');
   let dayVal = null;
   if(dayInput.type === 'date' && dayInput.value){
-    dayVal = new Date(dayInput.value).getDate();
+    dayVal = Number(dayInput.value.split('-')[2]);
+  }
+
+  if(editing){
+    editing.title = title;
+    editing.price = priceRaw ? Number(priceRaw) : null;
+    editing.service = document.getElementById('sbService').value || null;
+    editing.url = urlRaw || null;
+    editing.private = document.getElementById('sbPrivate').checked;
+    editing.day = key === 'backlog' ? null : dayVal;
+    if(key !== editing.month){
+      editing.month = key;
+      delete editing.returnedFrom;
+    }
+    saveState();
+    closeAddSidebar();
+    render();
+    return;
   }
 
   state.items.unshift({
