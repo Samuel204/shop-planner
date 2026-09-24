@@ -863,6 +863,11 @@
     box-shadow:0 1px 2px rgba(31,42,36,0.05), 0 6px 16px rgba(31,42,36,0.06);
   }
 
+  /* Rata in scadenza (mancano 5 giorni o meno, o già scaduta) */
+  .item.due-soon{
+    border:1px solid rgb(175 100 100 / 0.7);
+  }
+
   .item-title{
     font-family:'Fraunces', serif;
     font-size:1.2rem;
@@ -2646,9 +2651,24 @@ function formatItemDate(it){
   return new Date(y, m-1, it.day || 1).toLocaleDateString('it-IT', {day:'numeric', month:'long'});
 }
 
+// Giorni che mancano alla scadenza (data indicata nel calendario dell'elemento).
+// 0 = oggi, negativo = già scaduta. null se non c'è una scadenza da segnalare
+// (già acquistato, in "In sospeso" o senza giorno scelto).
+const DUE_SOON_DAYS = 5;
+function daysUntilDue(it){
+  if(it.purchased || !it.day || !it.month || it.month === 'backlog') return null;
+  const [y, m] = it.month.split('-').map(Number);
+  const due = new Date(y, m-1, it.day);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.round((due - today) / 86400000);
+}
+
 function buildItemCard(it, currentKey){
   const card = document.createElement('div');
-  card.className = 'item' + (it.purchased ? ' purchased' : '');
+  const daysLeft = daysUntilDue(it);
+  const dueSoon = daysLeft !== null && daysLeft <= DUE_SOON_DAYS;
+  card.className = 'item' + (it.purchased ? ' purchased' : '') + (dueSoon ? ' due-soon' : '');
 
   // Menu "…" (in alto a destra): Modifica / Elimina
   const armDelete = () => {
