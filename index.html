@@ -444,8 +444,8 @@
 
   .buy-btn svg{
     display:block;
-    width:0.85rem;
-    height:0.85rem;
+    width:1.05rem;
+    height:1.05rem;
   }
 
   .sync-actions{
@@ -492,16 +492,58 @@
     border-color:var(--brass-soft);
   }
 
+  /* Wrapper padre: solo padding sinistro/destro, nessuno scroll */
+  .board-wrap{
+    padding:0 clamp(1.2rem,4vw,3rem);
+    min-width:0;
+  }
+
+  /* La tabella: è l'unico elemento che scorre in orizzontale */
   main{
     display:flex;
     gap:0;
     overflow-x:auto;
-    padding:0 clamp(1.2rem,4vw,3rem);
     scrollbar-width:none;
     -ms-overflow-style:none;
   }
   main::-webkit-scrollbar{
     display:none;
+  }
+
+  @media (min-width: 641px){
+    main#board{
+      margin:1.6rem 0 2rem;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--card);
+    }
+    /* il bordo destro dell'ultima colonna coincide con il bordo della tabella */
+    main#board > .col:last-child{
+      border-right:none;
+    }
+  }
+
+  /* Allineamento colonne: tutte le colonne condividono le stesse righe
+     (intestazione | elementi | form/nota finale). L'altezza dell'intestazione
+     è quindi quella della più alta, anche se solo alcuni mesi hanno il
+     "totale rate", e il corpo di ogni colonna parte sempre alla stessa quota. */
+  @media (min-width: 641px){
+    @supports (grid-template-rows: subgrid){
+      main#board{
+        display:grid;
+        grid-auto-flow:column;
+        grid-auto-columns:280px;
+        grid-template-rows:auto 1fr auto;
+        min-height:70vh;
+      }
+      main#board > .col{
+        display:grid;
+        grid-row:span 3;
+        grid-template-rows:subgrid;
+        min-height:0;
+        align-content:normal;
+      }
+    }
   }
 
   .col{
@@ -812,20 +854,22 @@
   .item{
     background:var(--card);
     border:1px solid var(--line);
-    border-radius:8px;
-    padding:0.9rem 1rem;
+    border-radius:14px;
+    padding:1.05rem 1rem 1rem;
     position:relative;
     display:flex;
     flex-direction:column;
     gap:0.7rem;
+    box-shadow:0 1px 2px rgba(31,42,36,0.05), 0 6px 16px rgba(31,42,36,0.06);
   }
 
   .item-title{
-    font-size:1rem;
-    font-weight:600;
+    font-family:'Fraunces', serif;
+    font-size:1.2rem;
+    font-weight:500;
     margin:0;
-    line-height:1.3;
-    padding-right:1.8rem;
+    line-height:1.2;
+    padding-right:2rem;
     color:var(--ink);
   }
 
@@ -840,24 +884,33 @@
   }
 
   .item-price{
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.85rem;
-    font-weight:600;
-    color:var(--brass);
+    font-family:'Inter', sans-serif;
+    font-size:1rem;
+    font-weight:700;
+    color:var(--ink);
+    white-space:nowrap;
   }
 
   .item-service{
-    font-family:'JetBrains Mono', monospace;
-    font-size:0.55rem;
-    letter-spacing:0.05em;
+    display:inline-flex;
+    align-items:center;
+    gap:0.3rem;
+    font-family:'Inter', sans-serif;
+    font-size:0.66rem;
+    letter-spacing:0.06em;
     text-transform:uppercase;
-    font-weight:500;
+    font-weight:600;
     color:var(--ink-soft);
     background:var(--paper-2);
     border:1px solid var(--line);
     border-radius:16px;
-    padding:0.25rem 0.6rem;
+    padding:0.22rem 0.6rem 0.22rem 0.5rem;
     white-space:nowrap;
+  }
+  .item-service svg{
+    width:0.85rem;
+    height:0.85rem;
+    flex-shrink:0;
   }
   .item-service[data-service="Klarna"]{ background:#F6D9E2; color:#8A2F49; border-color:#E3A9BC; }
   .item-service[data-service="Paypal"]{ background:#D6E4F7; color:#1B4D8C; border-color:#A9C6EA; }
@@ -892,10 +945,60 @@
     min-width:0;
   }
 
-  .item .date-input{
-    flex:1;
-    min-width:100px;
-    max-width:140px;
+  /* Data: pill con icona calendario, "12 novembre" e chevron */
+  .item .date-pill{
+    position:relative;
+    flex:1 1 auto;
+    min-width:0;
+  }
+  .date-face{
+    display:flex;
+    align-items:center;
+    gap:0.55rem;
+    width:100%;
+    min-width:0;
+    height:2.4rem;
+    padding:0 0.7rem;
+    background:var(--paper-2);
+    border-radius:10px;
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:0.85rem;
+    font-weight:500;
+    transition:background .15s;
+  }
+  .date-pill:hover .date-face{ background:#E1DAC8; }
+  .date-pill:focus-within .date-face{ box-shadow:0 0 0 2px var(--brass-soft); }
+  .date-icon, .date-chevron{
+    display:flex;
+    flex-shrink:0;
+    color:var(--ink-soft);
+  }
+  .date-icon svg{ width:1.05rem; height:1.05rem; }
+  .date-chevron{ margin-left:auto; }
+  .date-chevron svg{ width:0.9rem; height:0.9rem; }
+  .date-text{
+    flex:1 1 auto;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .date-face.is-empty .date-text{ color:var(--ink-soft); font-weight:400; }
+
+  /* input nativo: invisibile, copre tutta la pill */
+  .item .date-pill .date-input{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    min-width:0;
+    max-width:none;
+    margin:0;
+    padding:0;
+    border:0;
+    opacity:0;
+    cursor:pointer;
   }
 
   .item .month-select{
@@ -933,15 +1036,20 @@
     font-size:1rem;
     line-height:1;
     padding:0;
-    opacity:0.55;
+    opacity:0.7;
     display:flex;
     align-items:center;
     justify-content:center;
     position:absolute;
-    top:0.7rem;
-    right:0.7rem;
-    width:1.4rem;
-    height:1.4rem;
+    top:1rem;
+    right:0.9rem;
+    width:1.6rem;
+    height:1.6rem;
+  }
+
+  .del-btn svg{
+    width:1.15rem;
+    height:1.15rem;
   }
 
   .del-btn:hover{
@@ -984,10 +1092,10 @@
 
   .buy-btn{
     background:none;
-    border:2px solid #D8D0BE;
-    border-radius:40%;
-    width:2rem;
-    height:2rem;
+    border:1px solid var(--line);
+    border-radius:50%;
+    width:2.4rem;
+    height:2.4rem;
     font-size:1rem;
     color:#1F2A24;
     cursor:pointer;
@@ -2025,7 +2133,9 @@
   <button id="mpNext" class="mp-arrow" aria-label="Pagina successiva">›</button>
 </div>
 
-<main id="board"></main>
+<div class="board-wrap">
+  <main id="board"></main>
+</div>
 
 <nav id="mobileNavbar" class="mobile-navbar">
   <button id="navIdee" class="nav-btn">
@@ -2452,6 +2562,21 @@ function buildColumn({key, isBacklog, title, indexLabel}){
   return col;
 }
 
+// Icone (SVG inline, ereditano il colore dal testo)
+const SVG_ATTR = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+const ICON_TRASH = `<svg ${SVG_ATTR}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+const ICON_WALLET = `<svg ${SVG_ATTR}><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>`;
+const ICON_CALENDAR = `<svg ${SVG_ATTR}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" stroke-width="2.4"/></svg>`;
+const ICON_CHEVRON = `<svg ${SVG_ATTR}><polyline points="6 9 12 15 18 9"/></svg>`;
+const ICON_CHECK = `<svg ${SVG_ATTR} stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+// "12 novembre" (giorno + mese per esteso) oppure null se l'item è in "In sospeso"
+function formatItemDate(it){
+  if(!it.month || it.month === 'backlog') return null;
+  const [y, m] = it.month.split('-').map(Number);
+  return new Date(y, m-1, it.day || 1).toLocaleDateString('it-IT', {day:'numeric', month:'long'});
+}
+
 function buildItemCard(it, currentKey){
   const card = document.createElement('div');
   card.className = 'item' + (it.purchased ? ' purchased' : '');
@@ -2459,11 +2584,9 @@ function buildItemCard(it, currentKey){
   const del = document.createElement('button');
 
   del.className = 'del-btn';
-  del.style.position = 'absolute';
-  del.style.top = '0.5rem';
-  del.style.right = '0.4rem';
-  del.textContent = '×';
+  del.innerHTML = ICON_TRASH;
   del.title = 'Prepara la rimozione';
+  del.setAttribute('aria-label', 'Prepara la rimozione');
 
   del.onclick = () => {
     armedDelete.add(it.id);
@@ -2497,14 +2620,15 @@ function buildItemCard(it, currentKey){
     if(it.price){
       const price = document.createElement('span');
       price.className = 'item-price';
-      price.textContent = fmtEuro(Number(it.price));
+      price.textContent = Number(it.price).toLocaleString('it-IT', {maximumFractionDigits:0}) + ' €';
       priceRow.appendChild(price);
     }
     if(it.service){
       const service = document.createElement('span');
       service.className = 'item-service';
       service.dataset.service = it.service;
-      service.textContent = it.service;
+      service.innerHTML = ICON_WALLET;
+      service.appendChild(document.createTextNode(it.service));
       priceRow.appendChild(service);
     }
     card.appendChild(priceRow);
@@ -2524,13 +2648,19 @@ function buildItemCard(it, currentKey){
   row.className = 'item-row';
 
   const dateGroup = document.createElement('div');
-  dateGroup.className = 'date-group';
+  dateGroup.className = 'date-group date-pill';
 
   // Input data unificato (giorno + mese insieme)
   const dateInput = document.createElement('input');
   dateInput.type = 'date';
   dateInput.className = 'date-input';
   dateInput.title = 'Seleziona giorno e mese';
+  dateInput.setAttribute('aria-label', 'Data');
+  // L'input nativo resta funzionante ma invisibile, sopra alla "pill":
+  // un click ovunque sulla pill apre il selettore della data.
+  dateInput.addEventListener('click', () => {
+    try{ if(dateInput.showPicker) dateInput.showPicker(); }catch(e){}
+  });
 
   // Costruisci il valore ISO (YYYY-MM-DD)
   // Se l'item ha un mese, usa quello; altrimenti usa il mese corrente
@@ -2571,6 +2701,21 @@ function buildItemCard(it, currentKey){
     }
     saveState(); render();
   };
+  // Aspetto: icona calendario + "12 novembre" + chevron
+  const dateLabelText = formatItemDate(it);
+  const face = document.createElement('span');
+  face.className = 'date-face' + (dateLabelText ? '' : ' is-empty');
+  const faceIcon = document.createElement('span');
+  faceIcon.className = 'date-icon';
+  faceIcon.innerHTML = ICON_CALENDAR;
+  const faceText = document.createElement('span');
+  faceText.className = 'date-text';
+  faceText.textContent = dateLabelText || 'Scegli una data';
+  const faceChevron = document.createElement('span');
+  faceChevron.className = 'date-chevron';
+  faceChevron.innerHTML = ICON_CHEVRON;
+  face.append(faceIcon, faceText, faceChevron);
+  dateGroup.appendChild(face);
   dateGroup.appendChild(dateInput);
 
   row.appendChild(dateGroup);
@@ -2583,7 +2728,7 @@ function buildItemCard(it, currentKey){
 
     buyBtn.innerHTML = isArmed
             ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>'
-            : '✓';
+            : ICON_CHECK;
 
     buyBtn.title = isArmed
             ? 'Clicca di nuovo per confermare la rimozione'
