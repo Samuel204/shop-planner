@@ -41,14 +41,6 @@ Quando il limite viene raggiunto, il sistema dovrebbe suggerire di:
 
 In questo modo un nuovo prodotto che viene in mente non viene automaticamente trasformato in un acquisto imminente.
 
-## Priorità degli acquisti
-
-Ogni elemento potrebbe avere un livello di priorità, ad esempio:
-
-* **Alta** — acquisto che voglio effettuare nel periodo stabilito;
-* **Media** — acquisto desiderato, ma rimandabile;
-* **Bassa** — acquisto secondario da valutare in futuro.
-
 La priorità può aiutare a decidere quali elementi mantenere nei mesi più vicini e quali spostare più avanti.
 
 ## Sezione "Future Ideas"
@@ -91,3 +83,5 @@ L'obiettivo finale è creare uno strumento semplice per **pianificare gli acquis
 * Local Storage API (github git)
 
 Non è previsto un backend: tutti i dati vengono memorizzati localmente nel browser.
+
+Link: https://samuel204.github.io/shop-planner/

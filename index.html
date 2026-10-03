@@ -663,7 +663,14 @@
     display:flex;
     flex-direction:column;
     gap:0.5rem;
+
   }
+
+  .settings-field-group.has-divider{
+    border-top:1px solid var(--line);
+    padding-top:1.2rem;
+  }
+
   .settings-field-label{
     font-family:'JetBrains Mono', monospace;
     font-size:0.75rem;
@@ -716,7 +723,6 @@
     gap:0.8rem;
     padding:0.8rem 0;
     border-top:1px solid var(--line);
-    border-bottom:1px solid var(--line);
   }
   .settings-toggle-icon{
     flex-shrink:0;
@@ -751,6 +757,34 @@
     color:var(--ink-soft);
     margin-top:0.25rem;
     line-height:1.4;
+  }
+
+  .service-usage{
+    display:flex;
+    flex-direction:column;
+    gap:0.4rem;
+    margin-top:0.3rem;
+  }
+  .service-usage-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:0.6rem;
+  }
+  .service-usage-count{
+    font-family:'JetBrains font-weight:600;
+    color:var(--ink);
+    background:var(--paper-2);
+    border-radius:10px;
+    padding:0.1rem 0.55rem;
+    font-size:0.7rem;
+    min-width:1.8rem;
+    text-align:center;
+  }
+  .service-usage-empty{
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    font-style:italic;
   }
 
   .settings-modal-footer{
@@ -2161,8 +2195,16 @@
         </div>
       </div>
 
+
+      <!-- Utilizzo servizi di pagamento (informativo) -->
+      <div class="settings-field-group has-divider">
+        <label class="settings-field-label">Utilizzo servizi</label>
+        <div class="settings-field-help">Quante volte ogni servizio è usato nella tabella.</div>
+        <div class="service-usage" id="serviceUsage"></div>
+      </div>
+
       <!-- Visualizzazione limite -->
-      <div class="settings-toggle-row">
+      <!--<div class="settings-toggle-row">
         <div class="settings-toggle-icon">
           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         </div>
@@ -2176,7 +2218,7 @@
           </div>
           <div class="settings-toggle-hint">Mostra il limite direttamente nelle colonne dei mesi (es. 2 / 5).</div>
         </div>
-      </div>
+      </div>-->
     </div>
 
     <div class="settings-modal-footer">
@@ -3349,8 +3391,64 @@ let tempShowLimit = true;
 function openSettingsModal(){
   tempCap = state.cap;
   document.getElementById('capDisplay').textContent = tempCap;
+  renderServiceUsage();
   document.getElementById('settingsModalOverlay').classList.add('open');
   document.getElementById('settingsModal').classList.add('open');
+}
+
+// Conta quante volte ogni servizio è usato nella tabella (12 mesi),
+// escludendo "In sospeso" e deduplicando le rate dello stesso acquisto
+// (stesso createdAt + stesso servizio). Un acquisto resta contato finché
+// almeno una delle sue rate è ancora presente tra gli elementi.
+function renderServiceUsage(){
+  const wrap = document.getElementById('serviceUsage');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  // Chiavi di raggruppamento già viste, per non contare due volte le rate.
+  const seenGroups = new Set();
+  const counts = {}; // service -> numero di acquisti distinti
+
+  state.items.forEach(it => {
+    if(!it.service) return;                 // nessun servizio: ignora
+    if(!it.month || it.month === 'backlog') return; // "In sospeso": ignora
+
+    // Un acquisto = stesso createdAt + stesso servizio (fallback sull'id
+    // per i vecchi elementi senza createdAt, così contano comunque come 1).
+    const groupKey = it.service + '::' + (it.createdAt != null ? it.createdAt : it.id);
+    if(seenGroups.has(groupKey)) return;
+    seenGroups.add(groupKey);
+
+    counts[it.service] = (counts[it.service] || 0) + 1;
+  });
+
+  const services = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  if(services.length === 0){
+    const empty = document.createElement('div');
+    empty.className = 'service-usage-empty';
+    empty.textContent = 'Nessun servizio ancora utilizzato.';
+    wrap.appendChild(empty);
+    return;
+  }
+
+  services.forEach(service => {
+    const row = document.createElement('div');
+    row.className = 'service-usage-row';
+
+    const pill = document.createElement('span');
+    pill.className = 'item-service';
+    pill.dataset.service = service;
+    pill.innerHTML = ICON_WALLET;
+    pill.appendChild(document.createTextNode(service));
+
+    const count = document.createElement('span');
+    count.className = 'service-usage-count';
+    count.textContent = counts[service];
+
+    row.appendChild(pill);
+    row.appendChild(count);
+    wrap.appendChild(row);
+  });
 }
 
 function closeSettingsModal(){
