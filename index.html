@@ -63,6 +63,61 @@
     margin:0.4rem 0 0;
   }
 
+  /* ====== Contenitore unico "pillola" per totale/settings, sync e frecce ====== */
+  .controls-cluster{
+    display:flex;
+    align-items:center;
+    gap:0;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:20px;
+    overflow:visible;
+    flex-wrap:nowrap;
+  }
+
+  /* I blocchi interni perdono bordo/sfondo: li fornisce il contenitore */
+  .controls-cluster .year-total-with-settings,
+  .controls-cluster .sync-toggle,
+  .controls-cluster .board-nav{
+    background:none;
+    border:none;
+    border-radius:0;
+  }
+
+  .controls-cluster > *{
+    display:flex;
+    align-items:center;
+  }
+
+  /* Padding coerente per ogni sezione interna */
+  .controls-cluster .year-total-with-settings{
+    padding:0.35rem 0.7rem 0.35rem 0.8rem;
+  }
+  .controls-cluster .sync-toggle{
+    padding:0.35rem 0.9rem;
+  }
+  .controls-cluster .board-nav{
+    padding:0.3rem 0.6rem;
+    gap:0.4rem;
+  }
+
+  /* Separatore verticale tra le sezioni */
+  .cluster-divider{
+    width:1px;
+    align-self:center;
+    height:1.8rem;
+    margin:0;
+    background:var(--line);
+    flex:0 0 auto;
+  }
+
+  .controls-cluster .board-arrow{
+    width:1.8rem;
+    height:1.8rem;
+    border:1px solid var(--line);
+    font-size:1.05rem;
+  }
+
   .header-decoration{
     display:flex;
     align-items:flex-end;
@@ -98,7 +153,7 @@
     color:var(--ink-soft);
     display:flex;
     align-items:center;
-    gap:0.4rem;
+    gap:0.55rem;
     background:var(--card);
     border:1px solid var(--line);
     border-radius:20px;
@@ -110,13 +165,23 @@
     overflow:visible;
   }
 
-  .year-total-display{
+  .year-total-stack{
     display:flex;
-    align-items:center;
-    gap:0.4rem;
-    pointer-events:none;
-    font-size:0.85rem;
+    flex-direction:column;
+    line-height:1.1;
   }
+  .year-total-caption{
+    font-size:0.6rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .year-total-stack b{
+    color:var(--ink);
+    font-weight:600;
+    font-size:0.95rem;
+  }
+
 
   .year-total-display svg{
     width:0.9rem;
@@ -132,8 +197,8 @@
   .year-total-display b{ color:var(--ink); font-weight:600; }
 
   .year-total-with-settings .settings-toggle{
-    width:1.6rem;
-    height:1.6rem;
+    width:1.2rem;
+    height:1.2rem;
     border:none;
     border-radius:50%;
     background:none;
@@ -206,7 +271,7 @@
   }
 
   @media (max-width: 640px){
-    .year-total-with-settings{
+    .year-total-with-settings:not(.controls-cluster *){
       width:100%;
       justify-content:flex-start;
     }
@@ -258,6 +323,32 @@
     .sync-toggle{
       flex-shrink:0;
       white-space:nowrap;
+    }
+
+    /* Il cluster su mobile: va a tutta larghezza e, se serve, manda a capo */
+    .controls-cluster{
+      width:100%;
+      flex-wrap:wrap;
+      border-radius:16px;
+      row-gap:0;
+    }
+    .controls-cluster .year-total-with-settings{
+      flex:1 1 auto;
+      min-width:0;
+      padding:0.5rem 0.7rem;
+    }
+    .controls-cluster .sync-toggle{
+      flex:1 1 auto;
+      justify-content:center;
+      padding:0.5rem 0.7rem;
+    }
+    .controls-cluster .board-nav{
+      flex:0 0 auto;
+    }
+    /* I divisori verticali diventano superflui quando gli elementi vanno a capo:
+       li teniamo solo se restano sulla stessa riga, altrimenti li nascondiamo */
+    .controls-cluster .cluster-divider{
+      display:none;
     }
   }
 
@@ -2093,28 +2184,35 @@
       <p class="subtitle">Le idee nascono libere in "In sospeso". Diventano un acquisto solo quando decidi consapevolmente in quale mese metterle — e ogni mese ha un tetto.</p>
 
       <div class="header-controls">
-                <span class="year-total-with-settings">
-                  <div class="year-total-display">
-                    <svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4 3 9 3s9-1.34 9-3v-6"/></svg>
-                    Totale pianificato: <b id="yearTotal">€0</b>
-                  </div>
-                  <span class="settings-wrap">
-                    <button id="settingsToggle" class="settings-toggle" aria-label="Impostazioni">
-                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-                    </button>
-                    <span class="settings-tooltip">Impostazioni limiti</span>
-                  </span>
-                </span>
-        <button id="syncToggle" class="sync-toggle">
-          <span id="syncDot" class="sync-dot"></span>
-          <span id="syncLabel">Sincronizzazione</span>
-        </button>
-        <span class="board-nav">
-                  <button id="boardPrevBtn" class="board-arrow" aria-label="Colonna precedente">‹</button>
-                  <button id="boardNextBtn" class="board-arrow" aria-label="Colonna successiva">›</button>
-                </span>
+        <div class="controls-cluster">
+                            <span class="year-total-with-settings">
+                                  <span class="year-total-icons">
+                                    <span class="settings-wrap">
+                                      <button id="settingsToggle" class="settings-toggle" aria-label="Impostazioni">
+                                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                                      </button>
+                                      <span class="settings-tooltip">Impostazioni limiti</span>
+                                    </span>
+                                  </span>
+                                  <div class="year-total-display">
+                                    <span class="year-total-stack">
+                                      <span class="year-total-caption">Tot.Pagamento</span>
+                                      <b id="yearTotal">€0</b>
+                                    </span>
+                                  </div>
+                                </span>
+          <span class="cluster-divider" aria-hidden="true"></span>
+          <button id="syncToggle" class="sync-toggle">
+            <span id="syncDot" class="sync-dot"></span>
+            <span id="syncLabel">Sincronizzazione</span>
+          </button>
+          <span class="cluster-divider" aria-hidden="true"></span>
+          <span class="board-nav">
+                      <button id="boardPrevBtn" class="board-arrow" aria-label="Colonna precedente">‹</button>
+                      <button id="boardNextBtn" class="board-arrow" aria-label="Colonna successiva">›</button>
+                    </span>
+        </div>
       </div>
-    </div>
   </div>
 
   <!-- Panel Impostazioni -->
